@@ -1,0 +1,144 @@
+create database [TesSwapro];
+USE [TesSwapro];
+GO
+/****** Object:  Table [dbo].[booking]    Script Date: 2/7/2025 10:53:16 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[booking](
+	[ID] [int] IDENTITY(1,1) NOT NULL,
+	[ObjectID] [nvarchar](8) NOT NULL,
+	[RoomCode] [nvarchar](5) NOT NULL,
+	[Username] [nvarchar](50) NOT NULL,
+	[Duration] [tinyint] NOT NULL,
+	[CheckInDate] [datetime] NULL,
+	[CheckOutDate] [datetime] NULL,
+	[Status] [nvarchar](20) NOT NULL,
+	[CreatedBy] [nvarchar](50) NOT NULL,
+	[CreatedDtm] [datetime] NOT NULL,
+	[UpdatedBy] [nvarchar](50) NULL,
+	[UpdatedDtm] [datetime] NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[ID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[ms_role]    Script Date: 2/7/2025 10:53:16 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[ms_role](
+	[ID] [int] IDENTITY(1,1) NOT NULL,
+	[Role] [nvarchar](10) NOT NULL,
+	[Description] [nvarchar](50) NULL,
+	[IsActive] [bit] NOT NULL,
+	[CreatedBy] [nvarchar](50) NOT NULL,
+	[CreatedDtm] [datetime] NOT NULL,
+	[UpdatedBy] [nvarchar](50) NULL,
+	[UpdatedDtm] [datetime] NULL,
+ CONSTRAINT [PK__ms_role__3214EC278B576530] PRIMARY KEY CLUSTERED 
+(
+	[ID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[ms_room]    Script Date: 2/7/2025 10:53:16 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[ms_room](
+	[ID] [int] IDENTITY(1,1) NOT NULL,
+	[Code] [nvarchar](5) NOT NULL,
+	[Name] [nvarchar](100) NOT NULL,
+	[Capacity] [tinyint] NOT NULL,
+	[Price] [decimal](18, 2) NOT NULL,
+	[IsActive] [bit] NOT NULL,
+	[CreatedBy] [nvarchar](50) NOT NULL,
+	[CreatedDtm] [datetime] NOT NULL,
+	[UpdatedBy] [nvarchar](50) NULL,
+	[UpdatedDtm] [datetime] NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[ID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[ms_user]    Script Date: 2/7/2025 10:53:16 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[ms_user](
+	[ID] [int] IDENTITY(1,1) NOT NULL,
+	[Username] [nvarchar](50) NOT NULL,
+	[Password] [text] NOT NULL,
+	[FirstName] [nvarchar](100) NOT NULL,
+	[LastName] [nvarchar](100) NULL,
+	[IsActive] [bit] NOT NULL,
+	[CreatedBy] [nvarchar](50) NOT NULL,
+	[CreatedDtm] [datetime] NOT NULL,
+	[UpdatedBy] [nvarchar](50) NULL,
+	[UpdatedDtm] [datetime] NULL,
+ CONSTRAINT [PK__ms_user__3214EC278FC9EE23] PRIMARY KEY CLUSTERED 
+(
+	[ID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[user_role]    Script Date: 2/7/2025 10:53:16 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[user_role](
+	[ID] [int] IDENTITY(1,1) NOT NULL,
+	[Username] [nvarchar](50) NOT NULL,
+	[Role] [nvarchar](50) NOT NULL,
+	[CreatedBy] [nvarchar](50) NOT NULL,
+	[CreatedDtm] [datetime] NOT NULL,
+	[UpdatedBy] [nvarchar](50) NULL,
+	[UpdatedDtm] [datetime] NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[ID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+SET IDENTITY_INSERT [dbo].[ms_role] ON 
+GO
+INSERT [dbo].[ms_role] ([ID], [Role], [Description], [IsActive], [CreatedBy], [CreatedDtm], [UpdatedBy], [UpdatedDtm]) VALUES (1, N'Admin', N'Administrator', 1, N'System', CAST(N'2025-02-07T20:39:19.247' AS DateTime), NULL, NULL)
+GO
+INSERT [dbo].[ms_role] ([ID], [Role], [Description], [IsActive], [CreatedBy], [CreatedDtm], [UpdatedBy], [UpdatedDtm]) VALUES (2, N'User', N'User', 1, N'System', CAST(N'2025-02-07T20:39:19.247' AS DateTime), NULL, NULL)
+GO
+SET IDENTITY_INSERT [dbo].[ms_role] OFF
+GO
+ALTER TABLE [dbo].[booking] ADD  DEFAULT ('System') FOR [CreatedBy]
+GO
+ALTER TABLE [dbo].[booking] ADD  DEFAULT (getdate()) FOR [CreatedDtm]
+GO
+ALTER TABLE [dbo].[ms_role] ADD  CONSTRAINT [DF__ms_role__IsActiv__3B75D760]  DEFAULT ((1)) FOR [IsActive]
+GO
+ALTER TABLE [dbo].[ms_role] ADD  DEFAULT ('System') FOR [CreatedBy]
+GO
+ALTER TABLE [dbo].[ms_role] ADD  CONSTRAINT [DF__ms_role__Created__3D5E1FD2]  DEFAULT (getdate()) FOR [CreatedDtm]
+GO
+ALTER TABLE [dbo].[ms_room] ADD  DEFAULT ((1)) FOR [IsActive]
+GO
+ALTER TABLE [dbo].[ms_room] ADD  DEFAULT ('System') FOR [CreatedBy]
+GO
+ALTER TABLE [dbo].[ms_room] ADD  DEFAULT (getdate()) FOR [CreatedDtm]
+GO
+ALTER TABLE [dbo].[ms_user] ADD  CONSTRAINT [DF_ms_user_IsActive]  DEFAULT ((1)) FOR [IsActive]
+GO
+ALTER TABLE [dbo].[ms_user] ADD  CONSTRAINT [DF__ms_user__Created__534D60F1]  DEFAULT ('System') FOR [CreatedBy]
+GO
+ALTER TABLE [dbo].[ms_user] ADD  CONSTRAINT [DF__ms_user__Created__38996AB5]  DEFAULT (getdate()) FOR [CreatedDtm]
+GO
+ALTER TABLE [dbo].[user_role] ADD  DEFAULT ('System') FOR [CreatedBy]
+GO
+ALTER TABLE [dbo].[user_role] ADD  DEFAULT (getdate()) FOR [CreatedDtm]
+GO
