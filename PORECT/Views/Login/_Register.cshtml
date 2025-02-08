@@ -1,0 +1,111 @@
+﻿@using Tes.Domain
+@using PORECT.Helper
+@{
+    Layout = null;
+}
+
+<div class="row">
+    <div class="col-sm-12 col-lg-12">
+        <div class="new-user-info">
+            <form id="DetailForm">
+                <div class="new-user-info">
+                    <div class="row">
+                        <div class="form-group col-md-6">
+                            <label><span class="mandatory">First Name</span>:</label>
+                            @Html.TextBox("FirstName", null, new { @class = "form-control", required = "required", maxlength = 100 })
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label><span class="">Last Name</span>:</label>
+                            @Html.TextBox("LastName", null, new { @class = "form-control", maxlength = 100 })
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label><span class="mandatory">Username</span>:</label>
+                            @Html.TextBox("Username", null, new { @class = "form-control", required = "required", disabled = "disabled" })
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label><span class="">Password</span>:</label>
+                            @Html.Password("Password", null, new { @class = "form-control", maxlength = 100, onkeyup = "checkPasswordStrength()", required = "required" })
+                            <div id="password-strength-status"></div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-submit">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    $("#FirstName, #LastName").on("input", function () {
+        // debugger;
+        var username = "";
+        var firstName = $("#FirstName").val();
+        var lastName = $("#LastName").val();
+        if(firstName != "")
+        {
+            if(lastName == "")
+            {
+                username = firstName.replace(" ", "").substring(0, 10);
+            }
+            else
+            {
+                username = firstName.replace(" ", "").substring(0, 1) + lastName.replace(" ", "").substring(0, 9);
+            }
+        }
+        $("#Username").val(username);
+    });
+
+    $("#DetailForm").submit(function (e) {
+        e.preventDefault();
+        // debugger;
+        var Username = $("#Username").val();
+        var Password = $("#Password").val();
+        var FirstName = $("#FirstName").val();
+        var LastName = $("#LastName").val();
+
+        var entity = {
+            TransactionType: "Insert",
+            Username: Username,
+            Password: Password,
+            FirstName: FirstName,
+            LastName: LastName
+        };
+        // debugger;
+        ConfirmationMessage("Confirmation",
+            "Are you sure you want to submit data?",
+            "question", "Yes", "Success",
+            "Data submitted successfully.", "DataTransaction",
+            {entity: entity, param1: '@Url.Action("NewUser", "Login")',
+              param2: 'Submit', param3: null}
+        );
+    });
+
+    function checkPasswordStrength() {
+        var number = /([0-9])/;
+        var alphabets = /([a-zA-Z])/;
+        var special_characters =/([~,!,@@,#,$,%,^,&,*,-,_,+,=,?,>,<])/;
+            var password = $('#Password').val().trim();
+        if (password.length < 6) {
+            $('#password-strength-status').removeClass();
+            $('#password-strength-status').addClass('weak-password');
+            $('#password-strength-status').html("Weak (should be atleast 6 characters.)");
+        } else {
+            if (password.match(number) && password.match(alphabets) && password.match(special_characters)) {
+                $('#password-strength-status').removeClass();
+                $('#password-strength-status').addClass('strong-password');
+                $('#password-strength-status').html("Strong");
+            }
+            else {
+                $('#password-strength-status').removeClass();
+                $('#password-strength-status').addClass('medium-password');
+                    $('#password-strength-status').html("Medium (should include alphabets[A-Z], numbers[0-9] and special characters[!@@#$%^&*].)");
+            }
+        }
+    }
+
+</script>
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

@@ -1,0 +1,8 @@
+dotnet ef dbcontext scaffold "Server=.;Database=TesSwapro;User Id=sa;Password=P@ssw0rd;" Microsoft.EntityFrameworkCore.SqlServer -o Models --force
+
+Install dotnet-ef global tools:
+dotnet tool install --global dotnet-ef
+
+Before executing command:
+cd ../Tes.Data
+

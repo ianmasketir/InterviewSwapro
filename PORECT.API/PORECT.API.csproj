@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+	<GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+	  <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.36" />
+	  <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.3.1" />
+	  <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="6.0.4" />
+	  <PackageReference Include="Swashbuckle.AspNetCore" Version="6.3.0" />
+	  <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="6.3.1" />
+	  <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.3.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PORECT.Helper\PORECT.Helper.csproj" />
+    <ProjectReference Include="..\Tes.Business\Tes.Business.csproj" />
+    <ProjectReference Include="..\Tes.Domain\Tes.Domain.csproj" />
+  </ItemGroup>
+
+</Project>
