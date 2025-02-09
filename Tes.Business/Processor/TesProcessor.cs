@@ -237,7 +237,7 @@ namespace Tes.Business
 
                 if (data.ID == null)
                 {
-                    if (data.TransactionType.ToLower() != "insert")
+                    if (data.TransactionType.ToLower() == "delete")
                     {
                         result.IsSuccess = false;
                         result.Message = "ID is required";
@@ -245,13 +245,13 @@ namespace Tes.Business
                         return result;
                     }
                 }
-                if (data.ObjectID == null)
-                {
-                    result.IsSuccess = false;
-                    result.Message = "ObjectID is required";
-                    result.Data = JsonConvert.SerializeObject(data);
-                    return result;
-                }
+                //if (data.ObjectID == null)
+                //{
+                //    result.IsSuccess = false;
+                //    result.Message = "ObjectID is required";
+                //    result.Data = JsonConvert.SerializeObject(data);
+                //    return result;
+                //}
                 if (string.IsNullOrEmpty(data.Code))
                 {
                     result.IsSuccess = false;

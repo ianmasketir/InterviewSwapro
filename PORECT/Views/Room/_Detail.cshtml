@@ -13,23 +13,32 @@
                     <div class="new-user-info">
                         <div class="row">
                             <div class="form-group col-md-6">
-                                <label><span class="mandatory">Product Code</span>:</label>
+                                <label><span class="mandatory">Room Code</span>:</label>
                                 @Html.HiddenFor(x => Model.Room.ID)
                                 @Html.HiddenFor(x => Model.FormMode)
                                 @if(Model.FormMode.ToLower() == "insert"){
-                                    @Html.TextBoxFor(x => Model.Room.Code, new { @class = "form-control", style = "text-transform:uppercase", maxlength = 10 })
+                                    @Html.TextBoxFor(x => Model.Room.Code, new { @class = "form-control", style = "text-transform:uppercase", maxlength = 5 })
                                 }
                                 else{
                                     @Html.TextBoxFor(x => Model.Room.Code, new { @class = "form-control", style = "text-transform:uppercase", disabled = "disabled" })
                                 }
                             </div>
                             <div class="form-group col-md-6">
-                                <label><span class="mandatory">Name</span>:</label>
+                                <label><span class="mandatory">Room Name</span>:</label>
                                 @if(Model.FormMode.ToLower() != "view"){
                                     @Html.TextBoxFor(x => Model.Room.Name, new { @class = "form-control", required = "required", maxlength = 100 })
                                 }
                                 else{
                                     @Html.TextBoxFor(x => Model.Room.Name, new { @class = "form-control", disabled = "disabled" })
+                                }
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label><span class="mandatory">Capacity</span>:</label>
+                                @if(Model.FormMode.ToLower() != "view"){
+                                    @Html.TextBoxFor(x => Model.Room.Capacity, new { @class = "form-control", type = "number", min = "1", max = "5", required = "required" })
+                                }
+                                else{
+                                    @Html.TextBoxFor(x => Model.Room.Capacity, new { @class = "form-control", disabled = "disabled" })
                                 }
                             </div>
                             <div class="form-group col-md-6">
@@ -44,15 +53,6 @@
                                     @Html.TextBox("Price", string.Concat("Rp. ", Model.Room.Price.ToString("N0").Replace(",", ".")), new { @class = "form-control", disabled = "disabled" })
                                 }
                             </div>
-                            @* <div class="form-group col-md-12">
-                                <label for="lname">Desc :</label>
-                                @if(Model.FormMode.ToLower() != "view"){
-                                    @Html.TextAreaFor(x => Model.Room.Description, new { @class = "form-control", required = "required", maxlength = 200 })
-                                }
-                                else{
-                                    @Html.TextAreaFor(x => Model.Room.Description, new { @class = "form-control", disabled = "disabled" })
-                                }
-                            </div> *@
                         </div>
                         @if (Model.FormMode != "View")
                         {
@@ -69,23 +69,23 @@
     $("#DetailForm").submit(function (e) {
         e.preventDefault();
         // debugger;
-        var ID = $("#Product_ID").val();
-        var ProductCode = $("#Product_ProductCode").val();
-        var Name = $("#Product_Name").val();
+        var ID = $("#Room_ID").val();
+        var RoomCode = $("#Room_Code").val();
+        var Name = $("#Room_Name").val();
+        var Capacity = $("#Room_Capacity").val();
         var Price = $("#Price").val().replace(/[\.,](?=\d{3})/g, '').replace('Rp. ', '');
         if(Price.includes(",")){
             Price = Price.replace(",", ".");
         }
-        var Description = $("#Product_Description").val();
 
         var transType = $("#FormMode").val();
 
         var entity = {
             ID: ID,
             TransactionType: transType,
-            ProductCode: ProductCode,
+            Code: RoomCode,
             Name: Name,
-            Description: Description,
+            Capacity: Capacity,
             Price: Price
         };
         // debugger;
@@ -93,7 +93,7 @@
             "Are you sure you want to submit data?",
             "question", "Yes", "Success",
             "Data submitted successfully.", "DataTransaction",
-            {entity: entity, param1: '@Url.Action("Submit", "Product")',
+            {entity: entity, param1: '@Url.Action("Submit", "Room")',
               param2: 'Submit', param3: null}
         );
     });

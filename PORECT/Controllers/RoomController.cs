@@ -42,7 +42,9 @@ namespace PORECT.Controllers
         {
             try
             {
-                if (HttpContext.Session.GetString("Username") == null)
+                var roles = HttpContext.Session.GetString("Roles");
+                if (HttpContext.Session.GetString("Username") == null || roles == null ||
+                    !roles.Split(';').Any(x => x.ToLower() == "admin"))
                 {
                     return RedirectToAction("Login", "Login");
                 }
@@ -60,8 +62,8 @@ namespace PORECT.Controllers
                 {
                     new ParamTaskViewModel
                     {
-                        colName = "ID",
-                        value = (data.ID ?? -1).ToString()
+                        colName = "Code",
+                        value = data.Value
                     }
                 };
                 var list = _api.Get<List<MsRoomResponse>>(param, AppConfig.Config.ConfigAPI.Room.BaseUrl, AppConfig.Config.ConfigAPI.Room.List.Endpoint,
@@ -76,7 +78,28 @@ namespace PORECT.Controllers
             }
             catch (Exception ex)
             {
-                logger.WriteErrorToLog(ex, "Product", "Form Detail");
+                logger.WriteErrorToLog(ex, "Room", "Form Detail");
+                throw;
+            }
+        }
+
+        public IActionResult Book(GeneralViewModel data)
+        {
+            try
+            {
+                var roles = HttpContext.Session.GetString("Roles");
+                if (HttpContext.Session.GetString("Username") == null || roles == null ||
+                    !roles.Split(';').Any(x => x.ToLower() == "customer"))
+                {
+                    return RedirectToAction("Login", "Login");
+                }
+                data.FormMode = "Insert";
+
+                return View("_Book", data);
+            }
+            catch (Exception ex)
+            {
+                logger.WriteErrorToLog(ex, "Room", "Form Book");
                 throw;
             }
         }
@@ -86,7 +109,7 @@ namespace PORECT.Controllers
             try
             {
                 var roles = HttpContext.Session.GetString("Roles");
-                if (HttpContext.Session.GetString("Fullname") == null || roles == null ||
+                if (HttpContext.Session.GetString("Username") == null || roles == null ||
                     !roles.Split(';').Any(x => x.ToLower() == "admin"))
                 {
                     return RedirectToAction("Login", "Login");
@@ -109,7 +132,9 @@ namespace PORECT.Controllers
             try
             {
                 var username = HttpContext.Session.GetString("Username");
-                if (username == null)
+                var roles = HttpContext.Session.GetString("Roles");
+                if (username == null || roles == null ||
+                    !roles.Split(';').Any(x => x.ToLower() == "admin"))
                 {
                     return RedirectToAction("Login", "Login");
                 }
@@ -156,13 +181,180 @@ namespace PORECT.Controllers
             }
             catch (Exception ex)
             {
-                logger.WriteErrorToLog(ex, "Product", "Submit");
+                logger.WriteErrorToLog(ex, "Room", "Submit");
+                throw;
+            }
+        }
+        [HttpPost]
+        public IActionResult SubmitRoomBooking(string? data)
+        {
+            try
+            {
+                var username = HttpContext.Session.GetString("Username");
+                if (username == null)
+                {
+                    return RedirectToAction("Login", "Login");
+                }
+
+                TransactionResponse response = new TransactionResponse();
+                if (string.IsNullOrEmpty(data))
+                {
+                    response.IsSuccess = false;
+                    response.Message = "Parameter is empty";
+                    return Json(response);
+                }
+
+                BookingRequest model = JsonConvert.DeserializeObject<BookingRequest>(data);
+                if (!ModelState.IsValid)
+                {
+                    //throw new Exception("Please check your input");
+                    response.IsSuccess = false;
+                    response.Message = "Please check your input";
+                    return Json(response);
+                }
+                model.CreatedBy = username;
+                model.ObjectID = Guid.NewGuid().GetObjectID();
+                model.Username = username;
+                model.Duration = Convert.ToByte(model.CheckOutDate.Value.Date.Subtract(model.CheckInDate.Value.Date).TotalDays);
+
+                ReturnToken jwtToken = GenerateJwtToken();
+                List<ParamTaskViewModel> listParamHeader = new List<ParamTaskViewModel>
+                {
+                    new ParamTaskViewModel
+                    {
+                        colName = "Authorization",
+                        value = string.Concat("Bearer ", jwtToken.Token)
+                    }
+                };
+                string json = JsonConvert.SerializeObject(model);
+                string result = _api.PostString(json, AppConfig.Config.ConfigAPI.Room.BaseUrl, AppConfig.Config.ConfigAPI.Room.SubmitRoomBooking.Endpoint, default, false,
+                    AppConfig.Config.ConfigAPI.Room.BaseUrl.Split('/')[0] == "https:", listParamHeader);
+                if (!string.IsNullOrEmpty(result))
+                    response = JsonConvert.DeserializeObject<TransactionResponse>(result);
+                else
+                {
+                    response.IsSuccess = true;
+                    response.Message = "Transaction success but no response from api";
+                }
+
+                return Json(response);
+            }
+            catch (Exception ex)
+            {
+                logger.WriteErrorToLog(ex, "Room", "SubmitRoomBooking");
                 throw;
             }
         }
         #endregion Transaction
 
         #region Upload/Download
+        /// <summary>
+        /// Upload Room data with provided template
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns>Json response</returns>
+        [HttpPost]
+        public IActionResult UploadRoom([FromForm] UploadViewModel? data)
+        {
+            try
+            {
+                var username = HttpContext.Session.GetString("Username");
+                var roles = HttpContext.Session.GetString("Roles");
+                if (username == null || roles == null ||
+                    !roles.Split(';').Any(x => x.ToLower() == "admin"))
+                {
+                    return RedirectToAction("Login", "Login");
+                }
+
+                TransactionResponse response = new TransactionResponse();
+                if (data?.File == null)
+                {
+                    response.IsSuccess = false;
+                    response.Message = "Parameter is empty";
+                    return Json(response);
+                }
+                data.CreatedBy = username;
+
+                ReturnToken jwtToken = GenerateJwtToken();
+                List<ParamTaskViewModel> listParamHeader = new List<ParamTaskViewModel>
+                {
+                    new ParamTaskViewModel
+                    {
+                        colName = "Authorization",
+                        value = string.Concat("Bearer ", jwtToken.Token)
+                    }
+                };
+                string result = _api.PostString(string.Empty, AppConfig.Config.ConfigAPI.Room.BaseUrl, AppConfig.Config.ConfigAPI.Room.UploadRoom.Endpoint, data, true,
+                    AppConfig.Config.ConfigAPI.Room.BaseUrl.Split('/')[0] == "https:", listParamHeader);
+                if (!string.IsNullOrEmpty(result))
+                    response = JsonConvert.DeserializeObject<TransactionResponse>(result);
+                else
+                {
+                    response.IsSuccess = true;
+                    response.Message = "Transaction success but no response from api";
+                }
+
+                return Json(response);
+            }
+            catch (Exception ex)
+            {
+                logger.WriteErrorToLog(ex, "Room", "UploadRoom");
+                throw;
+            }
+        }
+        /// <summary>
+        /// Upload Room data with provided template
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns>Json response</returns>
+        [HttpPost]
+        public IActionResult UploadBooking([FromForm] UploadViewModel? data)
+        {
+            try
+            {
+                var username = HttpContext.Session.GetString("Username");
+                if (username == null)
+                {
+                    return RedirectToAction("Login", "Login");
+                }
+
+                TransactionResponse response = new TransactionResponse();
+                if (data?.File == null)
+                {
+                    response.IsSuccess = false;
+                    response.Message = "Parameter is empty";
+                    return Json(response);
+                }
+                data.CreatedBy = username;
+
+                ReturnToken jwtToken = GenerateJwtToken();
+                List<ParamTaskViewModel> listParamHeader = new List<ParamTaskViewModel>
+                {
+                    new ParamTaskViewModel
+                    {
+                        colName = "Authorization",
+                        value = string.Concat("Bearer ", jwtToken.Token)
+                    }
+                };
+                string result = _api.PostString(string.Empty, AppConfig.Config.ConfigAPI.Room.BaseUrl, AppConfig.Config.ConfigAPI.Room.UploadBooking.Endpoint, data, true,
+                    AppConfig.Config.ConfigAPI.Room.BaseUrl.Split('/')[0] == "https:", listParamHeader);
+                if (!string.IsNullOrEmpty(result))
+                    response = JsonConvert.DeserializeObject<TransactionResponse>(result);
+                else
+                {
+                    response.IsSuccess = true;
+                    response.Message = "Transaction success but no response from api";
+                }
+
+                return Json(response);
+            }
+            catch (Exception ex)
+            {
+                logger.WriteErrorToLog(ex, "Room", "UploadBooking");
+                throw;
+            }
+        }
+
         /// <summary>
         /// Download template for upload data
         /// </summary>
@@ -173,7 +365,7 @@ namespace PORECT.Controllers
             try
             {
                 var roles = HttpContext.Session.GetString("Roles");
-                if (HttpContext.Session.GetString("Fullname") == null || roles == null ||
+                if (HttpContext.Session.GetString("Username") == null || roles == null ||
                     (data.Value == "Room" && !roles.Split(';').Any(x => x.ToLower() == "admin")))
                 {
                     return RedirectToAction("Login", "Login");
@@ -228,7 +420,7 @@ namespace PORECT.Controllers
             try
             {
                 var roles = HttpContext.Session.GetString("Roles");
-                if (HttpContext.Session.GetString("Fullname") == null || roles == null ||
+                if (HttpContext.Session.GetString("Username") == null || roles == null ||
                     !roles.Split(';').Any(x => x.ToLower() == "admin"))
                 {
                     return RedirectToAction("Login", "Login");

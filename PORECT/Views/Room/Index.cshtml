@@ -35,6 +35,7 @@
                             Download Report
                         </button>
                     }
+                    <input type="hidden" id="UploadType" value="Room" />
                     <div class="input-group" style="display:none;">
                         <div class="input-group-prepend">
                             <span class="input-group-text">Upload</span>
@@ -44,10 +45,14 @@
                             <label class="custom-file-label" for="logo">Choose file</label>
                         </div>
                     </div>
-                    <button class="btn-upload btn btn-outline-info rounded-pill" style="margin:0 5px;">
+                    <button class="btn-upload room btn btn-outline-info rounded-pill" style="margin:0 5px;">
                         <i class="ri-upload-line" style="position:relative; top:2px;"></i>
-                        Upload
+                        Upload Room
                     </button>
+                    @* <button class="btn-upload booking btn btn-outline-info rounded-pill" style="margin:0 5px;">
+                        <i class="ri-upload-line" style="position:relative; top:2px;"></i>
+                        Upload Booking
+                    </button> *@
                     <button class="btn-downloadTemplate booking btn btn-outline-warning rounded-pill" style="margin:0 5px;">
                         <i class="ri-download-line" style="position:relative; top:2px;"></i>
                         Download Template Booking
@@ -68,7 +73,7 @@
                                 <th>Status</th>
                                 @if (!string.IsNullOrEmpty(username))
                                 {
-                                <th>Action</th>
+                                    <th>Action</th>
                                 }
                             </tr>
                         </thead>
@@ -78,7 +83,7 @@
                                 <tr>
                                     <td>
                                         @Html.Raw(count++)
-                                        <span class="productId" style="display:none">@item.ID</span>
+                                        <span class="roomId" style="display:none">@item.ID</span>
                                     </td>
                                     <td>
                                         <span class="code">@item.Code</span>
@@ -95,32 +100,52 @@
                                         </span>
                                     </td>
                                     <td>
-                                        <span class="status">@(
+                                        <span class="status">@(!item.IsActive ? "Inactive" :
                                         !string.IsNullOrEmpty(item.BookingStatus) && item.BookingStatus != RoomStatusEnum.CheckedOut.ToString() ? 
                                             item.BookingStatus : "Available"
                                         )</span>
                                     </td>
                                     @if (!string.IsNullOrEmpty(username))
                                     {
-                                    <td>
-                                        @if (IsAdmin)
-                                        {
-                                            <a class="btn-edit btn btn-sm bg-primary" data-toggle="tooltip" data-placement="left" title="" data-original-title="Edit" onclick="Detail('Update', '@item.Code')">
-                                                <i class="ri-xl ri-pencil-line mr-0" style="position:relative; top:3px;"></i>
-                                            </a>
-                                            <a class="btn-delete btn btn-sm bg-success" data-toggle="tooltip" data-placement="left" title="" data-original-title="Enable" onclick="Detail('Disable', '@item.Name', '@item.Code')">
-                                                <i class="ri-xl ri-checkbox-circle-line mr-0" style="position:relative; top:3px;"></i>
-                                            </a>
-                                            <a class="btn-delete btn btn-sm bg-danger" data-toggle="tooltip" data-placement="left" title="" data-original-title="Disable" onclick="Detail('Disable', '@item.Name', '@item.Code')">
-                                                <i class="ri-xl ri-close-circle-line mr-0" style="position:relative; top:3px;"></i>
-                                            </a>
-                                        }
-                                        else
-                                        {
-                                            <a class="btn-edit btn btn-sm bg-success" data-toggle="tooltip" data-placement="left" title="" data-original-title="Book" onclick="Detail('Book', '@item.Code')">
-                                                <i class="ri-xl ri-book-fill mr-0" style="position:relative; top:3px;"></i>
-                                            </a>
-                                        }
+                                        <td>
+                                            @if (IsAdmin)
+                                            {
+                                                @if (string.IsNullOrEmpty(item.BookingStatus) || item.BookingStatus == RoomStatusEnum.CheckedOut.ToString())
+                                                {
+                                                    <a class="btn-edit btn btn-sm bg-primary" data-toggle="tooltip" data-placement="left" title="" data-original-title="Edit" onclick="Detail('Update', '@item.Code')">
+                                                        <i class="ri-xl ri-pencil-line mr-0" style="position:relative; top:3px;"></i>
+                                                    </a>
+                                                }
+                                                @if (item.BookingStatus == RoomStatusEnum.Booked.ToString())
+                                                {
+                                                    <a class="btn-edit btn btn-sm bg-dark" data-toggle="tooltip" data-placement="left" title="" data-original-title="Check Out This Room" onclick="Detail('Checkout', '@item.Code', '@item.Name', '@item.ID')">
+                                                        <i class="ri-xl ri-logout-box-line mr-0" style="position:relative; top:3px;"></i>
+                                                    </a>
+                                                }
+                                                @if (string.IsNullOrEmpty(item.BookingStatus) ||
+                                                     item.BookingStatus == RoomStatusEnum.CheckedOut.ToString())
+                                                {
+                                                    @if (!item.IsActive)
+                                                    {
+                                                        <a class="btn-delete btn btn-sm bg-success" data-toggle="tooltip" data-placement="left" title="" data-original-title="Enable" onclick="Detail('Enable', '@item.Code', '@item.Name', @item.ID)">
+                                                            <i class="ri-xl ri-checkbox-circle-line mr-0" style="position:relative; top:3px;"></i>
+                                                        </a>
+                                                    }
+                                                    else
+                                                    {
+                                                        <a class="btn-delete btn btn-sm bg-danger" data-toggle="tooltip" data-placement="left" title="" data-original-title="Disable" onclick="Detail('Disable', '@item.Code', '@item.Name', @item.ID)">
+                                                            <i class="ri-xl ri-close-circle-line mr-0" style="position:relative; top:3px;"></i>
+                                                        </a>
+                                                    }
+                                                }
+                                            }
+                                            else if (item.IsActive && (string.IsNullOrEmpty(item.BookingStatus) || 
+                                                 item.BookingStatus == RoomStatusEnum.CheckedOut.ToString()))
+                                            {
+                                                <a class="btn-edit btn btn-sm bg-success" data-toggle="tooltip" data-placement="left" title="" data-original-title="Book" onclick="Detail('Book', '@item.Code')">
+                                                    <i class="ri-xl ri-book-fill mr-0" style="position:relative; top:3px;"></i>
+                                                </a>
+                                            }
                                     </td>
                                     }
                                 </tr>
@@ -160,25 +185,29 @@
 </style>
 
 <script>
-    function Detail(transType, name, code){
-        debugger;
+    function Detail(transType, code, name, id){
+        // debugger;
         // var id = null;
         // if(transType != "Insert"){
         //     id = $(this).closest("tr").find(".userId").val();
         // }
         var entity = {
-            ID: id,
+            Value: code,
             FormMode: transType
         };
-        var title = "Create New Product";
+        var title = "Register New Room";
         if(transType == "Update"){
-            title = "Edit Product";
+            title = "Edit Room";
         }
 
-        if(transType == "Insert" || transType == "Update"){
+        if(transType == "Insert" || transType == "Update" || transType == "Book"){
             // debugger;
+            var url = '@Url.Action("Detail", "Room")';
+            if(transType == "Book"){
+                url = '@Url.Action("Book", "Room")';
+            }
             var param = {
-                param1: '@Url.Action("Detail", "Product")',
+                param1: url,
                 param2: entity,
                 param3: title,
                 param4: "dialog"
@@ -189,27 +218,35 @@
             // var name = $(this).closest("tr").find(".name").text();
             // var code = $(this).closest("tr").find(".code").text();
             entity = {
-                TransactionType: transType,
                 ID: id,
-                ProductCode: code
+                TransactionType: transType,
+                Code: code
             };
+            if(transType == "Checkout"){
+                entity = {
+                    ID: id,
+                    TransactionType: "Update",
+                    Code: code,
+                    Status: "CheckedOut"
+                };
+            }
             ConfirmationMessage("Confirmation",
-                 "Are you sure you want to " + transType.toLowerCase() + " product " + name + "?",
+                 "Are you sure you want to " + transType.toLowerCase() + " room " + name + "?",
                 "question", "Yes", "Success",
                 "Data deleted successfully.", "DataTransaction",
-                {entity: entity, param1: '@Url.Action("Submit", "Product")',
+                {entity: entity, param1: '@Url.Action("SubmitRoomBooking", "Room")',
                 param2: 'Delete', param3: null}
             );
         }
     }
 
     $(".btn-view").click(function(){
-        var id = $(this).closest("tr").find(".productId").val();
+        var id = $(this).closest("tr").find(".roomId").val();
         var entity = {
             ID: id
         };
         var param = {
-            param1: '@Url.Action("Detail", "Product")',
+            param1: '@Url.Action("Detail", "Room")',
             param2: entity,
             param3: "Detail Item",
             param4: "dialog"
@@ -218,6 +255,12 @@
     });
 
     $(".btn-upload").click(function(){
+        // debugger;
+        var type = "Room";
+        if($(this).hasClass("booking")){
+            type = "Booking";
+        }
+        $("#UploadType").val(type);
         $("#File").click();
     });
 
@@ -240,6 +283,28 @@
             param4: "dialog"
         };
         OpenPopup(param);
+    });
+
+    $("#File").on("change", function(){
+        // debugger;
+        var file = $(this)[0].files[0];
+
+        // Create a FormData object
+        var formData = new FormData();
+        formData.append("File", file);
+
+        var type = $("#UploadType").val();
+        var url = '@Url.Action("UploadRoom", "Room")';
+        if(type == "Booking"){
+            url = '@Url.Action("UploadBooking", "Room")';
+        }
+        ConfirmationMessage("Confirmation",
+            "Make sure your data in the first sheet and no formula. Are you sure you want to upload file " + file.name + "?",
+            "question", "Yes", "Success",
+            "File uploaded successfully.", "FormDataTransaction",
+            {entity: formData, param1: url,
+                param2: 'Submit', param3: null}
+        );
     });
 
 </script>

@@ -173,7 +173,9 @@ namespace Tes.Data
                                             BookingStatus = b.Code == null ? null : b.Status,
                                             //Booking = b,
                                             IsAvailable = b.Code == null || b.Status == RoomStatusEnum.CheckedOut.ToString(),
-                                            AvailableDate = b.Code != null ? b.CheckOutDate :
+                                            AvailableDate = b.Code != null ? 
+                                                Timestamp.Date < b.CheckOutDate.Value.Date && b.Status == RoomStatusEnum.CheckedOut.ToString() ? 
+                                                    Timestamp.Date : b.CheckOutDate :
                                                 dto.AvailableFrom ?? (new DateTime(2000, 1, 1)).Date,
                                             IsActive = r.IsActive ?? true,
                                             CreatedBy = r.CreatedBy,
@@ -700,11 +702,11 @@ namespace Tes.Data
                     {
                         #region Get Data
                         var qry = await context.Bookings.OrderByDescending(x => x.CreatedDtm)
-                                        .FirstOrDefaultAsync(x => 
-                                            x.ObjectId.ToUpper() == data.ObjectID.ToUpper() &&
+                                        .Where(x => 
+                                            //x.ObjectId.ToUpper() == data.ObjectID.ToUpper() &&
                                             x.RoomCode.ToUpper() == data.Code.ToUpper()
-                                        );
-                        if (qry == null)
+                                        ).ToListAsync();
+                        if (qry.Count == 0)
                         {
                             await transaction.RollbackAsync();
                             result.IsSuccess = false;
@@ -716,22 +718,38 @@ namespace Tes.Data
 
                         if (data.TransactionType.ToLower() == "update")
                         {
-                            qry.Status = !string.IsNullOrEmpty(data.Status) ? 
-                                            data.Status.ToLower() == RoomStatusEnum.Booked.ToString().ToLower() ?
-                                                RoomStatusEnum.Booked.ToString() :
-                                            data.Status.ToLower() == RoomStatusEnum.CheckedIn.ToString().ToLower() ?
-                                                RoomStatusEnum.CheckedIn.ToString() : RoomStatusEnum.CheckedOut.ToString() :
-                                         qry.Status;
+                            foreach (var item in qry)
+                            {
+                                item.Status = !string.IsNullOrEmpty(data.Status) ?
+                                                data.Status.ToLower() == RoomStatusEnum.Booked.ToString().ToLower() ?
+                                                    RoomStatusEnum.Booked.ToString() :
+                                                data.Status.ToLower() == RoomStatusEnum.CheckedIn.ToString().ToLower() ?
+                                                    RoomStatusEnum.CheckedIn.ToString() : RoomStatusEnum.CheckedOut.ToString() :
+                                             item.Status;
 
-                            qry.UpdatedBy = data.CreatedBy;
-                            qry.UpdatedDtm = Timestamp;
-                            context.Entry(qry).State = EntityState.Detached;
-                            context.Update(qry);
+                                item.UpdatedBy = data.CreatedBy;
+                                item.UpdatedDtm = Timestamp;
+                                context.Entry(item).State = EntityState.Detached;
+                                context.Update(item);
+                                await context.SaveChangesAsync();
+                            }
                         }
                         else
-                            context.Remove(qry);
+                        {
+                            var dto = qry.FirstOrDefault(x => x.Id == data.ID);
+                            if (dto == null)
+                            {
+                                await transaction.RollbackAsync();
+                                result.IsSuccess = false;
+                                result.Message = "Data not found";
+                                result.Data = JsonConvert.SerializeObject(data);
+                                return result;
+                            }
+                            
+                            context.Remove(dto);
+                            await context.SaveChangesAsync();
+                        }
                     }
-                    await context.SaveChangesAsync();
 
                     bool ready = true;
                     if (ready)

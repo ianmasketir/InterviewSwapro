@@ -1,0 +1,63 @@
+﻿@using Tes.Domain
+@using PORECT.Helper
+@model GeneralViewModel
+@{
+    Layout = null;
+}
+
+<div class="row">
+    <div class="col-sm-12 col-lg-12">
+        <div class="new-user-info">
+            <form id="DetailForm">
+                <div class="card-body">
+                    <div class="new-user-info">
+                        <div class="row">
+                            <div class="form-group col-md-6">
+                                <label><span class="mandatory">Check In Date</span>:</label>
+                                @Html.HiddenFor(x => Model.FormMode)
+                                <input type="hidden" id="Code" value="@Model.Value" />
+                                @Html.TextBox("CheckIn", DateTime.Now.Date.ToString("yyyy-MM-dd"), new { @class = "form-control", type = "date", required = "required" })
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label><span class="mandatory">Check Out Date</span>:</label>
+                                @Html.TextBox("CheckOut", default, new { @class = "form-control", type = "date", required = "required" })
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-submit">Submit</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    $("#DetailForm").submit(function (e) {
+        e.preventDefault();
+        // debugger;
+        var RoomCode = $("#Code").val();
+        var CheckIn = $("#CheckIn").val();
+        var CheckOut = $("#CheckOut").val();
+
+        var entity = {
+            TransactionType: "Insert",
+            Code: RoomCode,
+            CheckInDate: CheckIn,
+            CheckOutDate: CheckOut
+        };
+        // debugger;
+        ConfirmationMessage("Confirmation",
+            "Are you sure you want to submit data?",
+            "question", "Yes", "Success",
+            "Data submitted successfully.", "DataTransaction",
+            {entity: entity, param1: '@Url.Action("SubmitRoomBooking", "Room")',
+              param2: 'Submit', param3: null}
+        );
+    });
+
+</script>
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
