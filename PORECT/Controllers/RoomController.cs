@@ -38,6 +38,31 @@ namespace PORECT.Controllers
             }
         }
 
+        public IActionResult Booking()
+        {
+            try
+            {
+                var data = new List<BookingResponse>();
+                ReturnToken jwtToken = GenerateJwtToken();
+                List<ParamTaskViewModel> listParamHeader = new List<ParamTaskViewModel>
+                {
+                    new ParamTaskViewModel
+                    {
+                        colName = "Authorization",
+                        value = string.Concat("Bearer ", jwtToken.Token)
+                    }
+                };
+                data = _api.Get<List<BookingResponse>>(new(), AppConfig.Config.ConfigAPI.Room.BaseUrl, AppConfig.Config.ConfigAPI.Room.ListBooking.Endpoint,
+                    AppConfig.Config.ConfigAPI.Room.BaseUrl.Split('/')[0] == "https:", listParamHeader);
+                return View(data);
+            }
+            catch (Exception ex)
+            {
+                logger.WriteErrorToLog(ex, "Room", "Form Booking");
+                throw;
+            }
+        }
+
         public IActionResult Detail(GeneralViewModel data)
         {
             try
@@ -215,7 +240,8 @@ namespace PORECT.Controllers
                 model.CreatedBy = username;
                 model.ObjectID = Guid.NewGuid().GetObjectID();
                 model.Username = username;
-                model.Duration = Convert.ToByte(model.CheckOutDate.Value.Date.Subtract(model.CheckInDate.Value.Date).TotalDays);
+                if (model.TransactionType != "Delete")
+                    model.Duration = Convert.ToByte(model.CheckOutDate.Value.Date.Subtract(model.CheckInDate.Value.Date).TotalDays);
 
                 ReturnToken jwtToken = GenerateJwtToken();
                 List<ParamTaskViewModel> listParamHeader = new List<ParamTaskViewModel>

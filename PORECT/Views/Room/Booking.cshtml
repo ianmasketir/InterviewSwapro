@@ -1,0 +1,237 @@
+﻿@using PORECT.Helper
+@model List<Tes.Domain.BookingResponse>
+@{
+    ViewData["Title"] = "Index";
+    string? username = Context.Session.GetString("Username");
+    string? roles = Context.Session.GetString("Roles");
+    bool IsAdmin = !string.IsNullOrEmpty(roles) && roles.Split(';').Any(x => x.ToLower() == "admin");
+    int count = 1;
+}
+
+<div class="row">
+    <div class="col-sm-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between">
+                <div class="header-title">
+                    <h4 class="card-title">My Room Booking</h4>
+                </div>
+            </div>
+            <div class="card-body">
+
+                <div class="table-responsive">
+                    <table id="datatable" class="table data-table table-hover dataTable" style="font-size:12px">
+                        <thead>
+                            <tr class="ligth">
+                                <th>No</th>
+                                <th>Room Code</th>
+                                <th>Name</th>
+                                <th>Check In Date</th>
+                                <th>Check Out Date</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        @Html.Raw(count++)
+                                        <span class="id" style="display:none">@item.ID</span>
+                                    </td>
+                                    <td>
+                                        <span class="code">@item.Code</span>
+                                    </td>
+                                    <td>
+                                        <span class="name">@item.Username</span>
+                                    </td>
+                                    <td>
+                                        <span class="checkIn">@item.CheckInDate?.ToString("dd MMM yyyy")</span>
+                                    </td>
+                                    <td>
+                                        <span class="checkOut">@item.CheckOutDate?.ToString("dd MMM yyyy")</span>
+                                    </td>
+                                    <td>
+                                        <span class="status">@item.Status</span>
+                                    </td>
+                                    <td>
+                                        <a class="btn-delete btn btn-sm bg-danger" data-toggle="tooltip" data-placement="left" title="" data-original-title="Delete">
+                                            <i class="ri-xl ri-delete-bin-line mr-0" style="position:relative; top:3px;"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        <tfoot>
+                            <tr>
+                                <th>No</th>
+                                <th>Room Code</th>
+                                <th>Name</th>
+                                <th>Check In Date</th>
+                                <th>Check Out Date</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@await Html.PartialAsync("_PopupDialog")
+
+<style>
+    .mandatory:after {
+        content: "*";
+        color: red;
+        margin: 0 5px;
+    }
+    #dialog .modal-dialog{
+        width:700px;
+    }
+</style>
+
+<script>
+    function Detail(transType, code, name, id){
+        // debugger;
+        // var id = null;
+        // if(transType != "Insert"){
+        //     id = $(this).closest("tr").find(".userId").val();
+        // }
+        var entity = {
+            Value: code,
+            FormMode: transType
+        };
+        var title = "Register New Room";
+        if(transType == "Update"){
+            title = "Edit Room";
+        }
+
+        if(transType == "Insert" || transType == "Update" || transType == "Book"){
+            // debugger;
+            var url = '@Url.Action("Detail", "Room")';
+            if(transType == "Book"){
+                url = '@Url.Action("Book", "Room")';
+            }
+            var param = {
+                param1: url,
+                param2: entity,
+                param3: title,
+                param4: "dialog"
+            };
+            OpenPopup(param);
+        }
+        else{
+            // var name = $(this).closest("tr").find(".name").text();
+            // var code = $(this).closest("tr").find(".code").text();
+            entity = {
+                ID: id,
+                TransactionType: transType,
+                Code: code
+            };
+            if(transType == "Checkout"){
+                entity = {
+                    ID: id,
+                    TransactionType: "Update",
+                    Code: code,
+                    Status: "CheckedOut"
+                };
+            }
+            ConfirmationMessage("Confirmation",
+                 "Are you sure you want to " + transType.toLowerCase() + " room " + name + "?",
+                "question", "Yes", "Success",
+                "Data deleted successfully.", "DataTransaction",
+                {entity: entity, param1: '@Url.Action("SubmitRoomBooking", "Room")',
+                param2: 'Delete', param3: null}
+            );
+        }
+    }
+
+    $(".btn-view").click(function(){
+        var id = $(this).closest("tr").find(".roomId").val();
+        var entity = {
+            ID: id
+        };
+        var param = {
+            param1: '@Url.Action("Detail", "Room")',
+            param2: entity,
+            param3: "Detail Item",
+            param4: "dialog"
+        };
+        OpenPopup(param);
+    });
+
+    $(".btn-delete").click(function(){
+        var id = $(this).closest("tr").find(".id").text();
+        var code = $(this).closest("tr").find(".code").text();
+        var name = $(this).closest("tr").find(".name").text();
+
+        var entity = {
+            ID: id,
+            TransactionType: "Delete",
+            Code: code
+        };
+        // debugger;
+        ConfirmationMessage("Confirmation",
+            "Are you sure you want to delete booking for room " + code + "?",
+            "question", "Yes", "Success",
+            "Data submitted successfully.", "DataTransaction",
+            {entity: entity, param1: '@Url.Action("SubmitRoomBooking", "Room")',
+                param2: 'Submit', param3: null}
+        );
+    });
+
+    $(".btn-upload").click(function(){
+        // debugger;
+        var type = "Room";
+        if($(this).hasClass("booking")){
+            type = "Booking";
+        }
+        $("#UploadType").val(type);
+        $("#File").click();
+    });
+
+    $(".btn-downloadTemplate").click(function(){
+        if($(this).hasClass("room")){
+            window.location.href = '@Url.Action("DownloadTemplate", "Room")' + '?Value=Room';
+        }
+        else if($(this).hasClass("booking")){
+            window.location.href = '@Url.Action("DownloadTemplate", "Room")' + '?Value=Booking';
+        }
+    });
+
+    $(".btn-download").click(function(){
+        // debugger;
+        var entity = {};
+        var param = {
+            param1: '@Url.Action("Download", "Room")',
+            param2: entity,
+            param3: "Download Report",
+            param4: "dialog"
+        };
+        OpenPopup(param);
+    });
+
+    $("#File").on("change", function(){
+        // debugger;
+        var file = $(this)[0].files[0];
+
+        var formData = new FormData();
+        formData.append("File", file);
+
+        var type = $("#UploadType").val();
+        var url = '@Url.Action("UploadRoom", "Room")';
+        if(type == "Booking"){
+            url = '@Url.Action("UploadBooking", "Room")';
+        }
+        ConfirmationMessage("Confirmation",
+            "Make sure your data in the first sheet and no formula. Are you sure you want to upload file " + file.name + "?",
+            "question", "Yes", "Success",
+            "File uploaded successfully.", "FormDataTransaction",
+            {entity: formData, param1: url,
+                param2: 'Submit', param3: null}
+        );
+    });
+
+</script>

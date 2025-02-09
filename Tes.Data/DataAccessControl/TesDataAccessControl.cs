@@ -73,6 +73,7 @@ namespace Tes.Data
                                               (string.IsNullOrEmpty(dto.Name) || b.Username.ToLower() == dto.Name.ToLower().Trim())
                                         select new BookingResponse
                                         {
+                                            ID = b.Id,
                                             ObjectID = b.ObjectId,
                                             Code = b.RoomCode,
                                             Username = b.Username,
@@ -697,6 +698,7 @@ namespace Tes.Data
                             //CreatedDtm = data.CreatedDtm ?? Timestamp
                         };
                         context.Add(dto);
+                        await context.SaveChangesAsync();
                     }
                     else
                     {

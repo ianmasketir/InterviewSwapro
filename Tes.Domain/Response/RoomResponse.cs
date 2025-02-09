@@ -25,6 +25,7 @@ namespace Tes.Domain
     }
     public class BookingResponse
     {
+        public int? ID { get; set; }
         public string? ObjectID { get; set; }
         public string? Code { get; set; }
         public string? Username { get; set; }
