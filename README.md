@@ -1,6 +1,7 @@
 # InterviewSwapro
 
 Instruction:
+0. Restore the database "TesSwapro.bak" or run the script "DbScript.txt". Change the connection string according to your server db connection.
 1. Run/deploy PORECT.API first, then run/deploy PORECT.
 2. Please change the "BaseUrl" section in the apps file "appsettings.json" with following:
 2a. If API deployed on http, change the https://localhost:7278/ to the api location. Example: http://swaprodev:8322/ 1b. If API deployed on https, please deploy it in folder "tes" under "Default Web Site". Change the https://localhost:7278/ to the api location. Example: https://swaprodev/tes/
