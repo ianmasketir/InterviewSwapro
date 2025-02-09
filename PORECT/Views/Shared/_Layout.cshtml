@@ -1,10 +1,12 @@
 ﻿@using Newtonsoft.Json
 @using Microsoft.Extensions.Configuration.Json
 @{
-
-    string? Fullname = Context.Session.GetString("Fullname").ToUpper();
+    string? Fullname = Context.Session.GetString("Fullname");
+    Fullname = !string.IsNullOrEmpty(Fullname) ? Fullname.ToUpper() : string.Empty;
     int? IdUser = Context.Session.GetInt32("Id");
     string? username = Context.Session.GetString("Username");
+    var roles = Context.Session.GetString("Roles");
+    bool IsAdmin = !string.IsNullOrEmpty(roles) && roles.Split(';').Any(x => x.ToLower() == "admin");
 }
 
 <!doctype html>
@@ -36,10 +38,10 @@
     <script src="~/lib/sweetalert2/dist/sweetalert2.all.min.js" type="text/javascript"></script>
     <script src="~/js/AlertMessageExtensions.js" type="text/javascript"></script>
     <script src="~/js/HelperScript.js" type="text/javascript"></script>
-    
+
     <style>
         .loading {
-            width: 20px;
+        width: 20px;
         height: 20px;
         border-radius: 50%;
         display: inline-block;
@@ -47,8 +49,8 @@
         border-right: 4px solid transparent;
         box-sizing: border-box;
         animation: rotation 1s linear infinite;
-    }
-    .loading::after {
+        }
+        .loading::after {
         content: '';  
         box-sizing: border-box;
         position: absolute;
@@ -57,590 +59,590 @@
         width: 20px;
         height: 20px;
         border-radius: 50%;
-                border-left: 4px solid White;
+        border-left: 4px solid White;
         border-bottom: 4px solid transparent;
         animation: rotation 0.5s linear infinite reverse;
-    }
-    @@keyframes rotation {
+        }
+        @@keyframes rotation {
         0% {
         transform: rotate(0deg);
         }
         100% {
         transform: rotate(360deg);
         }
-    } 
+        } 
 
-    /* making it responsive, using CSS Flexbox with column (vertical) direction*/
-    .breadcrumb2 {
+        /* making it responsive, using CSS Flexbox with column (vertical) direction*/
+        .breadcrumb2 {
         display: flex;
         flex-direction: column;
-    }
+        }
 
-    .breadcrumb2-item {
+        .breadcrumb2-item {
         width: 80% !important;
         border-radius: 4px 0 0 4px;
         padding-left: 25px !important;
-    }
+        }
 
-    .breadcrumb2-item-md {
+        .breadcrumb2-item-md {
         width: 80% !important;
         border-radius: 3px 0 0 3px;
         padding-left: 20px !important;
-    }
+        }
 
-    .breadcrumb2-item-sm {
+        .breadcrumb2-item-sm {
         width: 80% !important;
         border-radius: 3px 0 0 3px;
         padding-left: 18px !important;
-    }
-}
+        }
+        }
 
-/* regular size breadcrumb2-item -----------------------------------*/
-.breadcrumb2 .breadcrumb2-item {
-    position: relative;
-    display: table-cell;
-    vertical-align: middle;
-    background-color: var(--bs-info);
-    height: 40px;
-    line-height: 18px;
-    font-size: 18px;
-    text-align: center;
-    padding-right: 10px;
-    padding-left: 25px;
-    text-decoration: none;
-}
+        /* regular size breadcrumb2-item -----------------------------------*/
+        .breadcrumb2 .breadcrumb2-item {
+        position: relative;
+        display: table-cell;
+        vertical-align: middle;
+        background-color: var(--bs-info);
+        height: 40px;
+        line-height: 18px;
+        font-size: 18px;
+        text-align: center;
+        padding-right: 10px;
+        padding-left: 25px;
+        text-decoration: none;
+        }
 
-.breadcrumb2 .breadcrumb2-item .breadcrumb2-text {
-    display: table-cell;
-    vertical-align: middle;
-    text-align: center;
-}
+        .breadcrumb2 .breadcrumb2-item .breadcrumb2-text {
+        display: table-cell;
+        vertical-align: middle;
+        text-align: center;
+        }
 
-.breadcrumb2 .breadcrumb2-item .breadcrumb2-icon {
-    display: table-cell;
-    text-align: center;
-    line-height: 25px;
-    font-size: 25px;
-    padding-right: 10px;
-    vertical-align: middle;
-}
+        .breadcrumb2 .breadcrumb2-item .breadcrumb2-icon {
+        display: table-cell;
+        text-align: center;
+        line-height: 25px;
+        font-size: 25px;
+        padding-right: 10px;
+        vertical-align: middle;
+        }
 
-.breadcrumb2 .breadcrumb2-item:first-child {
-    border-radius: 4px 0 0 4px;
-    padding-left: 15px;
-}
+        .breadcrumb2 .breadcrumb2-item:first-child {
+        border-radius: 4px 0 0 4px;
+        padding-left: 15px;
+        }
 
-/* all this to create edge on arrow, creating gray arrow in background */
-.breadcrumb2 .breadcrumb2-item:after {
-    content: "";
-    display: block;
-    width: 0;
-    height: 0;
-    border-top: 20px solid transparent;
-    border-bottom: 20px solid transparent;
-    border-left: 15px solid var(--bs-gray);
-    position: absolute;
-    margin-top: -20px;
-    margin-left: 1px;
-    left: 100%;
-    z-index: 2;
-    top: 50%;
-}
+        /* all this to create edge on arrow, creating gray arrow in background */
+        .breadcrumb2 .breadcrumb2-item:after {
+        content: "";
+        display: block;
+        width: 0;
+        height: 0;
+        border-top: 20px solid transparent;
+        border-bottom: 20px solid transparent;
+        border-left: 15px solid var(--bs-gray);
+        position: absolute;
+        margin-top: -20px;
+        margin-left: 1px;
+        left: 100%;
+        z-index: 2;
+        top: 50%;
+        }
 
-/* this is arrow itself, overwriting gray arrow */
-.breadcrumb2 .breadcrumb2-item:before {
-    content: "";
-    display: block;
-    width: 0;
-    height: 0;
-    border-top: 20px solid transparent;
-    border-bottom: 20px solid transparent;
-    border-left: 15px solid var(--bs-info);
-    position: absolute;
-    margin-top: -20px;
-    margin-left: 0px;
-    left: 100%;
-    z-index: 3;
-    top: 50%;
-}
+        /* this is arrow itself, overwriting gray arrow */
+        .breadcrumb2 .breadcrumb2-item:before {
+        content: "";
+        display: block;
+        width: 0;
+        height: 0;
+        border-top: 20px solid transparent;
+        border-bottom: 20px solid transparent;
+        border-left: 15px solid var(--bs-info);
+        position: absolute;
+        margin-top: -20px;
+        margin-left: 0px;
+        left: 100%;
+        z-index: 3;
+        top: 50%;
+        }
 
-/* medium size breadcrumb2-item -----------------------------------*/
-.breadcrumb2 .breadcrumb2-item-md {
-    position: relative;
-    display: table-cell;
-    vertical-align: middle;
-    background-color: var(--bs-info);
-    height: 32px;
-    line-height: 15px;
-    font-size: 15px;
-    text-align: center;
-    padding-right: 10px;
-    padding-left: 20px;
-    text-decoration: none;
-}
+        /* medium size breadcrumb2-item -----------------------------------*/
+        .breadcrumb2 .breadcrumb2-item-md {
+        position: relative;
+        display: table-cell;
+        vertical-align: middle;
+        background-color: var(--bs-info);
+        height: 32px;
+        line-height: 15px;
+        font-size: 15px;
+        text-align: center;
+        padding-right: 10px;
+        padding-left: 20px;
+        text-decoration: none;
+        }
 
-.breadcrumb2 .breadcrumb2-item-md .breadcrumb2-text {
-    display: table-cell;
-    vertical-align: middle;
-    text-align: center;
-}
+        .breadcrumb2 .breadcrumb2-item-md .breadcrumb2-text {
+        display: table-cell;
+        vertical-align: middle;
+        text-align: center;
+        }
 
-.breadcrumb2 .breadcrumb2-item-md .breadcrumb2-icon {
-    display: table-cell;
-    text-align: center;
-    line-height: 20px;
-    font-size: 20px;
-    padding-right: 7px;
-    vertical-align: middle;
-}
+        .breadcrumb2 .breadcrumb2-item-md .breadcrumb2-icon {
+        display: table-cell;
+        text-align: center;
+        line-height: 20px;
+        font-size: 20px;
+        padding-right: 7px;
+        vertical-align: middle;
+        }
 
-.breadcrumb2 .breadcrumb2-item-md:first-child {
-    border-radius: 3px 0 0 3px;
-    padding-left: 12px;
-}
+        .breadcrumb2 .breadcrumb2-item-md:first-child {
+        border-radius: 3px 0 0 3px;
+        padding-left: 12px;
+        }
 
-/* all this to create edge on arrow, creating gray arrow in background */
-.breadcrumb2 .breadcrumb2-item-md:after {
-    content: "";
-    display: block;
-    width: 0;
-    height: 0;
-    border-top: 16px solid transparent;
-    border-bottom: 16px solid transparent;
-    border-left: 12px solid var(--bs-gray);
-    position: absolute;
-    margin-top: -16px;
-    margin-left: 1px;
-    left: 100%;
-    z-index: 2;
-    top: 50%;
-}
+        /* all this to create edge on arrow, creating gray arrow in background */
+        .breadcrumb2 .breadcrumb2-item-md:after {
+        content: "";
+        display: block;
+        width: 0;
+        height: 0;
+        border-top: 16px solid transparent;
+        border-bottom: 16px solid transparent;
+        border-left: 12px solid var(--bs-gray);
+        position: absolute;
+        margin-top: -16px;
+        margin-left: 1px;
+        left: 100%;
+        z-index: 2;
+        top: 50%;
+        }
 
-/* this is arrow itself, overwriting gray arrow */
-.breadcrumb2 .breadcrumb2-item-md:before {
-    content: "";
-    display: block;
-    width: 0;
-    height: 0;
-    border-top: 16px solid transparent;
-    border-bottom: 16px solid transparent;
-    border-left: 12px solid var(--bs-info);
-    position: absolute;
-    margin-top: -16px;
-    margin-left: 0px;
-    left: 100%;
-    z-index: 3;
-    top: 50%;
-}
+        /* this is arrow itself, overwriting gray arrow */
+        .breadcrumb2 .breadcrumb2-item-md:before {
+        content: "";
+        display: block;
+        width: 0;
+        height: 0;
+        border-top: 16px solid transparent;
+        border-bottom: 16px solid transparent;
+        border-left: 12px solid var(--bs-info);
+        position: absolute;
+        margin-top: -16px;
+        margin-left: 0px;
+        left: 100%;
+        z-index: 3;
+        top: 50%;
+        }
 
-/* small size breadcrumb2-item-sm -----------------------------------*/
-.breadcrumb2 .breadcrumb2-item-sm {
-    position: relative;
-    display: table-cell;
-    vertical-align: middle;
-    background-color: var(--bs-info);
-    height: 24px;
-    line-height: 11px;
-    font-size: 11px;
-    text-align: center;
-    padding-right: 8px;
-    padding-left: 18px;
-    text-decoration: none;
-}
+        /* small size breadcrumb2-item-sm -----------------------------------*/
+        .breadcrumb2 .breadcrumb2-item-sm {
+        position: relative;
+        display: table-cell;
+        vertical-align: middle;
+        background-color: var(--bs-info);
+        height: 24px;
+        line-height: 11px;
+        font-size: 11px;
+        text-align: center;
+        padding-right: 8px;
+        padding-left: 18px;
+        text-decoration: none;
+        }
 
-.breadcrumb2 .breadcrumb2-item-sm .breadcrumb2-text {
-    display: table-cell;
-    vertical-align: middle;
-    text-align: center;
-}
+        .breadcrumb2 .breadcrumb2-item-sm .breadcrumb2-text {
+        display: table-cell;
+        vertical-align: middle;
+        text-align: center;
+        }
 
-.breadcrumb2 .breadcrumb2-item-sm .breadcrumb2-icon {
-    display: table-cell;
-    text-align: center;
-    line-height: 16px;
-    font-size: 16px;
-    padding-right: 5px;
-    vertical-align: middle;
-}
+        .breadcrumb2 .breadcrumb2-item-sm .breadcrumb2-icon {
+        display: table-cell;
+        text-align: center;
+        line-height: 16px;
+        font-size: 16px;
+        padding-right: 5px;
+        vertical-align: middle;
+        }
 
-.breadcrumb2 .breadcrumb2-item-sm:first-child {
-    border-radius: 3px 0 0 3px;
-    padding-left: 10px;
-}
+        .breadcrumb2 .breadcrumb2-item-sm:first-child {
+        border-radius: 3px 0 0 3px;
+        padding-left: 10px;
+        }
 
-/* all this to create edge on arrow, creating gray arrow in background */
-.breadcrumb2 .breadcrumb2-item-sm:after {
-    content: "";
-    display: block;
-    width: 0;
-    height: 0;
-    border-top: 12px solid transparent;
-    border-bottom: 12px solid transparent;
-    border-left: 8px solid var(--bs-gray);
-    position: absolute;
-    margin-top: -12px;
-    margin-left: 1px;
-    left: 100%;
-    z-index: 2;
-    top: 50%;
-}
+        /* all this to create edge on arrow, creating gray arrow in background */
+        .breadcrumb2 .breadcrumb2-item-sm:after {
+        content: "";
+        display: block;
+        width: 0;
+        height: 0;
+        border-top: 12px solid transparent;
+        border-bottom: 12px solid transparent;
+        border-left: 8px solid var(--bs-gray);
+        position: absolute;
+        margin-top: -12px;
+        margin-left: 1px;
+        left: 100%;
+        z-index: 2;
+        top: 50%;
+        }
 
-/* this is arrow itself, overwriting gray arrow */
-.breadcrumb2 .breadcrumb2-item-sm:before {
-    content: "";
-    display: block;
-    width: 0;
-    height: 0;
-    border-top: 12px solid transparent;
-    border-bottom: 12px solid transparent;
-    border-left: 8px solid var(--bs-info);
-    position: absolute;
-    margin-top: -12px;
-    margin-left: 0px;
-    left: 100%;
-    z-index: 3;
-    top: 50%;
-}
+        /* this is arrow itself, overwriting gray arrow */
+        .breadcrumb2 .breadcrumb2-item-sm:before {
+        content: "";
+        display: block;
+        width: 0;
+        height: 0;
+        border-top: 12px solid transparent;
+        border-bottom: 12px solid transparent;
+        border-left: 8px solid var(--bs-info);
+        position: absolute;
+        margin-top: -12px;
+        margin-left: 0px;
+        left: 100%;
+        z-index: 3;
+        top: 50%;
+        }
 
-/*breadcrumb2-item info color -----------------------------------*/
-.breadcrumb2 .info.breadcrumb2-item,
-.breadcrumb2 .info.breadcrumb2-item-md,
-.breadcrumb2 .info.breadcrumb2-item-sm {
-    background-color: var(--bs-info);
-    color: var(--bs-black);
-}
+        /*breadcrumb2-item info color -----------------------------------*/
+        .breadcrumb2 .info.breadcrumb2-item,
+        .breadcrumb2 .info.breadcrumb2-item-md,
+        .breadcrumb2 .info.breadcrumb2-item-sm {
+        background-color: var(--bs-info);
+        color: var(--bs-black);
+        }
 
-.breadcrumb2 .info.breadcrumb2-item:before,
-.breadcrumb2 .info.breadcrumb2-item-md:before,
-.breadcrumb2 .info.breadcrumb2-item-sm:before {
-    border-left-color: var(--bs-info);
-}
+        .breadcrumb2 .info.breadcrumb2-item:before,
+        .breadcrumb2 .info.breadcrumb2-item-md:before,
+        .breadcrumb2 .info.breadcrumb2-item-sm:before {
+        border-left-color: var(--bs-info);
+        }
 
-.breadcrumb2 .info.breadcrumb2-item:hover:not(.no-hover-effect),
-.breadcrumb2 .info.breadcrumb2-item:focus:not(.no-hover-effect),
-.breadcrumb2 .info.breadcrumb2-item-md:hover:not(.no-hover-effect),
-.breadcrumb2 .info.breadcrumb2-item-md:focus:not(.no-hover-effect),
-.breadcrumb2 .info.breadcrumb2-item-sm:hover:not(.no-hover-effect),
-.breadcrumb2 .info.breadcrumb2-item-sm:focus:not(.no-hover-effect) {
-    background-color: var(--bs-gray);
-    color: var(--bs-white);
-}
+        .breadcrumb2 .info.breadcrumb2-item:hover:not(.no-hover-effect),
+        .breadcrumb2 .info.breadcrumb2-item:focus:not(.no-hover-effect),
+        .breadcrumb2 .info.breadcrumb2-item-md:hover:not(.no-hover-effect),
+        .breadcrumb2 .info.breadcrumb2-item-md:focus:not(.no-hover-effect),
+        .breadcrumb2 .info.breadcrumb2-item-sm:hover:not(.no-hover-effect),
+        .breadcrumb2 .info.breadcrumb2-item-sm:focus:not(.no-hover-effect) {
+        background-color: var(--bs-gray);
+        color: var(--bs-white);
+        }
 
-.breadcrumb2 .info.breadcrumb2-item:hover:not(.no-hover-effect):before,
-.breadcrumb2 .info.breadcrumb2-item:focus:not(.no-hover-effect):before,
-.breadcrumb2 .info.breadcrumb2-item-md:hover:not(.no-hover-effect):before,
-.breadcrumb2 .info.breadcrumb2-item-md:focus:not(.no-hover-effect):before,
-.breadcrumb2 .info.breadcrumb2-item-sm:hover:not(.no-hover-effect):before,
-.breadcrumb2 .info.breadcrumb2-item-sm:focus:not(.no-hover-effect):before {
-                    border-left-color: var(--bs-gray);
-}
+        .breadcrumb2 .info.breadcrumb2-item:hover:not(.no-hover-effect):before,
+        .breadcrumb2 .info.breadcrumb2-item:focus:not(.no-hover-effect):before,
+        .breadcrumb2 .info.breadcrumb2-item-md:hover:not(.no-hover-effect):before,
+        .breadcrumb2 .info.breadcrumb2-item-md:focus:not(.no-hover-effect):before,
+        .breadcrumb2 .info.breadcrumb2-item-sm:hover:not(.no-hover-effect):before,
+        .breadcrumb2 .info.breadcrumb2-item-sm:focus:not(.no-hover-effect):before {
+        border-left-color: var(--bs-gray);
+        }
 
-/*breadcrumb2-item primary color -----------------------------------*/
-.breadcrumb2 .primary.breadcrumb2-item,
-.breadcrumb2 .primary.breadcrumb2-item-md,
-.breadcrumb2 .primary.breadcrumb2-item-sm {
-    background-color: var(--bs-primary);
-    color: var(--bs-white);
-}
+        /*breadcrumb2-item primary color -----------------------------------*/
+        .breadcrumb2 .primary.breadcrumb2-item,
+        .breadcrumb2 .primary.breadcrumb2-item-md,
+        .breadcrumb2 .primary.breadcrumb2-item-sm {
+        background-color: var(--bs-primary);
+        color: var(--bs-white);
+        }
 
-.breadcrumb2 .primary.breadcrumb2-item:before,
-.breadcrumb2 .primary.breadcrumb2-item-md:before,
-.breadcrumb2 .primary.breadcrumb2-item-sm:before {
-    border-left-color: var(--bs-primary);
-}
+        .breadcrumb2 .primary.breadcrumb2-item:before,
+        .breadcrumb2 .primary.breadcrumb2-item-md:before,
+        .breadcrumb2 .primary.breadcrumb2-item-sm:before {
+        border-left-color: var(--bs-primary);
+        }
 
-.breadcrumb2 .primary.breadcrumb2-item:hover:not(.no-hover-effect),
-.breadcrumb2 .primary.breadcrumb2-item:focus:not(.no-hover-effect),
-.breadcrumb2 .primary.breadcrumb2-item-md:hover:not(.no-hover-effect),
-.breadcrumb2 .primary.breadcrumb2-item-md:focus:not(.no-hover-effect),
-.breadcrumb2 .primary.breadcrumb2-item-sm:hover:not(.no-hover-effect),
-.breadcrumb2 .primary.breadcrumb2-item-sm:focus:not(.no-hover-effect) {
-                background-color: var(--bs-gray);
-    color: var(--bs-white);
-}
+        .breadcrumb2 .primary.breadcrumb2-item:hover:not(.no-hover-effect),
+        .breadcrumb2 .primary.breadcrumb2-item:focus:not(.no-hover-effect),
+        .breadcrumb2 .primary.breadcrumb2-item-md:hover:not(.no-hover-effect),
+        .breadcrumb2 .primary.breadcrumb2-item-md:focus:not(.no-hover-effect),
+        .breadcrumb2 .primary.breadcrumb2-item-sm:hover:not(.no-hover-effect),
+        .breadcrumb2 .primary.breadcrumb2-item-sm:focus:not(.no-hover-effect) {
+        background-color: var(--bs-gray);
+        color: var(--bs-white);
+        }
 
-.breadcrumb2 .primary.breadcrumb2-item:hover:not(.no-hover-effect):before,
-.breadcrumb2 .primary.breadcrumb2-item:focus:not(.no-hover-effect):before,
-.breadcrumb2 .primary.breadcrumb2-item-md:hover:not(.no-hover-effect):before,
-.breadcrumb2 .primary.breadcrumb2-item-md:focus:not(.no-hover-effect):before,
-.breadcrumb2 .primary.breadcrumb2-item-sm:hover:not(.no-hover-effect):before,
-.breadcrumb2 .primary.breadcrumb2-item-sm:focus:not(.no-hover-effect):before {
-    border-left-color: var(--bs-gray);
-}
+        .breadcrumb2 .primary.breadcrumb2-item:hover:not(.no-hover-effect):before,
+        .breadcrumb2 .primary.breadcrumb2-item:focus:not(.no-hover-effect):before,
+        .breadcrumb2 .primary.breadcrumb2-item-md:hover:not(.no-hover-effect):before,
+        .breadcrumb2 .primary.breadcrumb2-item-md:focus:not(.no-hover-effect):before,
+        .breadcrumb2 .primary.breadcrumb2-item-sm:hover:not(.no-hover-effect):before,
+        .breadcrumb2 .primary.breadcrumb2-item-sm:focus:not(.no-hover-effect):before {
+        border-left-color: var(--bs-gray);
+        }
 
-/*breadcrumb2-item warning color -----------------------------------*/
-.breadcrumb2 .warning.breadcrumb2-item,
-.breadcrumb2 .warning.breadcrumb2-item-md,
-.breadcrumb2 .warning.breadcrumb2-item-sm {
-    background-color: var(--bs-warning);
-    color: var(--bs-black);
-}
+        /*breadcrumb2-item warning color -----------------------------------*/
+        .breadcrumb2 .warning.breadcrumb2-item,
+        .breadcrumb2 .warning.breadcrumb2-item-md,
+        .breadcrumb2 .warning.breadcrumb2-item-sm {
+        background-color: var(--bs-warning);
+        color: var(--bs-black);
+        }
 
-.breadcrumb2 .warning.breadcrumb2-item:before,
-.breadcrumb2 .warning.breadcrumb2-item-md:before,
-.breadcrumb2 .warning.breadcrumb2-item-sm:before {
-    border-left-color: var(--bs-warning);
-}
+        .breadcrumb2 .warning.breadcrumb2-item:before,
+        .breadcrumb2 .warning.breadcrumb2-item-md:before,
+        .breadcrumb2 .warning.breadcrumb2-item-sm:before {
+        border-left-color: var(--bs-warning);
+        }
 
-.breadcrumb2 .warning.breadcrumb2-item:hover:not(.no-hover-effect),
-.breadcrumb2 .warning.breadcrumb2-item:focus:not(.no-hover-effect),
-.breadcrumb2 .warning.breadcrumb2-item-md:hover:not(.no-hover-effect),
-.breadcrumb2 .warning.breadcrumb2-item-md:focus:not(.no-hover-effect),
-.breadcrumb2 .warning.breadcrumb2-item-sm:hover:not(.no-hover-effect),
-.breadcrumb2 .warning.breadcrumb2-item-sm:focus:not(.no-hover-effect) {
-                background-color: var(--bs-gray);
-    color: var(--bs-white);
-}
+        .breadcrumb2 .warning.breadcrumb2-item:hover:not(.no-hover-effect),
+        .breadcrumb2 .warning.breadcrumb2-item:focus:not(.no-hover-effect),
+        .breadcrumb2 .warning.breadcrumb2-item-md:hover:not(.no-hover-effect),
+        .breadcrumb2 .warning.breadcrumb2-item-md:focus:not(.no-hover-effect),
+        .breadcrumb2 .warning.breadcrumb2-item-sm:hover:not(.no-hover-effect),
+        .breadcrumb2 .warning.breadcrumb2-item-sm:focus:not(.no-hover-effect) {
+        background-color: var(--bs-gray);
+        color: var(--bs-white);
+        }
 
-.breadcrumb2 .warning.breadcrumb2-item:hover:not(.no-hover-effect):before,
-.breadcrumb2 .warning.breadcrumb2-item:focus:not(.no-hover-effect):before,
-.breadcrumb2 .warning.breadcrumb2-item-md:hover:not(.no-hover-effect):before,
-.breadcrumb2 .warning.breadcrumb2-item-md:focus:not(.no-hover-effect):before,
-.breadcrumb2 .warning.breadcrumb2-item-sm:hover:not(.no-hover-effect):before,
-.breadcrumb2 .warning.breadcrumb2-item-sm:focus:not(.no-hover-effect):before {
-                    border-left-color: var(--bs-gray);
-}
+        .breadcrumb2 .warning.breadcrumb2-item:hover:not(.no-hover-effect):before,
+        .breadcrumb2 .warning.breadcrumb2-item:focus:not(.no-hover-effect):before,
+        .breadcrumb2 .warning.breadcrumb2-item-md:hover:not(.no-hover-effect):before,
+        .breadcrumb2 .warning.breadcrumb2-item-md:focus:not(.no-hover-effect):before,
+        .breadcrumb2 .warning.breadcrumb2-item-sm:hover:not(.no-hover-effect):before,
+        .breadcrumb2 .warning.breadcrumb2-item-sm:focus:not(.no-hover-effect):before {
+        border-left-color: var(--bs-gray);
+        }
 
-/*breadcrumb2-item success color -----------------------------------*/
-.breadcrumb2 .success.breadcrumb2-item,
-.breadcrumb2 .success.breadcrumb2-item-md,
-.breadcrumb2 .success.breadcrumb2-item-sm {
-    background-color: var(--bs-success);
-    color: var(--bs-white);
-}
+        /*breadcrumb2-item success color -----------------------------------*/
+        .breadcrumb2 .success.breadcrumb2-item,
+        .breadcrumb2 .success.breadcrumb2-item-md,
+        .breadcrumb2 .success.breadcrumb2-item-sm {
+        background-color: var(--bs-success);
+        color: var(--bs-white);
+        }
 
-.breadcrumb2 .success.breadcrumb2-item:before,
-.breadcrumb2 .success.breadcrumb2-item-md:before,
-.breadcrumb2 .success.breadcrumb2-item-sm:before {
-    border-left-color: var(--bs-success);
-}
+        .breadcrumb2 .success.breadcrumb2-item:before,
+        .breadcrumb2 .success.breadcrumb2-item-md:before,
+        .breadcrumb2 .success.breadcrumb2-item-sm:before {
+        border-left-color: var(--bs-success);
+        }
 
-.breadcrumb2 .success.breadcrumb2-item:hover:not(.no-hover-effect),
-.breadcrumb2 .success.breadcrumb2-item:focus:not(.no-hover-effect),
-.breadcrumb2 .success.breadcrumb2-item-md:hover:not(.no-hover-effect),
-.breadcrumb2 .success.breadcrumb2-item-md:focus:not(.no-hover-effect),
-.breadcrumb2 .success.breadcrumb2-item-sm:hover:not(.no-hover-effect),
-.breadcrumb2 .success.breadcrumb2-item-sm:focus:not(.no-hover-effect) {
-                background-color: var(--bs-gray);
-    color: var(--bs-white);
-}
+        .breadcrumb2 .success.breadcrumb2-item:hover:not(.no-hover-effect),
+        .breadcrumb2 .success.breadcrumb2-item:focus:not(.no-hover-effect),
+        .breadcrumb2 .success.breadcrumb2-item-md:hover:not(.no-hover-effect),
+        .breadcrumb2 .success.breadcrumb2-item-md:focus:not(.no-hover-effect),
+        .breadcrumb2 .success.breadcrumb2-item-sm:hover:not(.no-hover-effect),
+        .breadcrumb2 .success.breadcrumb2-item-sm:focus:not(.no-hover-effect) {
+        background-color: var(--bs-gray);
+        color: var(--bs-white);
+        }
 
-.breadcrumb2 .success.breadcrumb2-item:hover:not(.no-hover-effect):before,
-.breadcrumb2 .success.breadcrumb2-item:focus:not(.no-hover-effect):before,
-.breadcrumb2 .success.breadcrumb2-item-md:hover:not(.no-hover-effect):before,
-.breadcrumb2 .success.breadcrumb2-item-md:focus:not(.no-hover-effect):before,
-.breadcrumb2 .success.breadcrumb2-item-sm:hover:not(.no-hover-effect):before,
-.breadcrumb2 .success.breadcrumb2-item-sm:focus:not(.no-hover-effect):before {
-                    border-left-color: var(--bs-gray);
-}
+        .breadcrumb2 .success.breadcrumb2-item:hover:not(.no-hover-effect):before,
+        .breadcrumb2 .success.breadcrumb2-item:focus:not(.no-hover-effect):before,
+        .breadcrumb2 .success.breadcrumb2-item-md:hover:not(.no-hover-effect):before,
+        .breadcrumb2 .success.breadcrumb2-item-md:focus:not(.no-hover-effect):before,
+        .breadcrumb2 .success.breadcrumb2-item-sm:hover:not(.no-hover-effect):before,
+        .breadcrumb2 .success.breadcrumb2-item-sm:focus:not(.no-hover-effect):before {
+        border-left-color: var(--bs-gray);
+        }
 
-/*breadcrumb2-item secondary color -----------------------------------*/
-.breadcrumb2 .secondary.breadcrumb2-item,
-.breadcrumb2 .secondary.breadcrumb2-item-md,
-.breadcrumb2 .secondary.breadcrumb2-item-sm {
-    background-color: var(--bs-secondary);
-    color: var(--bs-white);
-}
+        /*breadcrumb2-item secondary color -----------------------------------*/
+        .breadcrumb2 .secondary.breadcrumb2-item,
+        .breadcrumb2 .secondary.breadcrumb2-item-md,
+        .breadcrumb2 .secondary.breadcrumb2-item-sm {
+        background-color: var(--bs-secondary);
+        color: var(--bs-white);
+        }
 
-.breadcrumb2 .secondary.breadcrumb2-item:before,
-.breadcrumb2 .secondary.breadcrumb2-item-md:before,
-.breadcrumb2 .secondary.breadcrumb2-item-sm:before {
-    border-left-color: var(--bs-secondary);
-}
+        .breadcrumb2 .secondary.breadcrumb2-item:before,
+        .breadcrumb2 .secondary.breadcrumb2-item-md:before,
+        .breadcrumb2 .secondary.breadcrumb2-item-sm:before {
+        border-left-color: var(--bs-secondary);
+        }
 
-.breadcrumb2 .secondary.breadcrumb2-item:hover:not(.no-hover-effect),
-.breadcrumb2 .secondary.breadcrumb2-item:focus:not(.no-hover-effect),
-.breadcrumb2 .secondary.breadcrumb2-item-md:hover:not(.no-hover-effect),
-.breadcrumb2 .secondary.breadcrumb2-item-md:focus:not(.no-hover-effect),
-.breadcrumb2 .secondary.breadcrumb2-item-sm:hover:not(.no-hover-effect),
-.breadcrumb2 .secondary.breadcrumb2-item-sm:focus:not(.no-hover-effect) {
-                background-color: var(--bs-gray);
-    color: var(--bs-white);
-}
+        .breadcrumb2 .secondary.breadcrumb2-item:hover:not(.no-hover-effect),
+        .breadcrumb2 .secondary.breadcrumb2-item:focus:not(.no-hover-effect),
+        .breadcrumb2 .secondary.breadcrumb2-item-md:hover:not(.no-hover-effect),
+        .breadcrumb2 .secondary.breadcrumb2-item-md:focus:not(.no-hover-effect),
+        .breadcrumb2 .secondary.breadcrumb2-item-sm:hover:not(.no-hover-effect),
+        .breadcrumb2 .secondary.breadcrumb2-item-sm:focus:not(.no-hover-effect) {
+        background-color: var(--bs-gray);
+        color: var(--bs-white);
+        }
 
-.breadcrumb2 .secondary.breadcrumb2-item:hover:not(.no-hover-effect):before,
-.breadcrumb2 .secondary.breadcrumb2-item:focus:not(.no-hover-effect):before,
-.breadcrumb2 .secondary.breadcrumb2-item-md:hover:not(.no-hover-effect):before,
-.breadcrumb2 .secondary.breadcrumb2-item-md:focus:not(.no-hover-effect):before,
-.breadcrumb2 .secondary.breadcrumb2-item-sm:hover:not(.no-hover-effect):before,
-.breadcrumb2 .secondary.breadcrumb2-item-sm:focus:not(.no-hover-effect):before {
-    border-left-color: var(--bs-gray);
-}
+        .breadcrumb2 .secondary.breadcrumb2-item:hover:not(.no-hover-effect):before,
+        .breadcrumb2 .secondary.breadcrumb2-item:focus:not(.no-hover-effect):before,
+        .breadcrumb2 .secondary.breadcrumb2-item-md:hover:not(.no-hover-effect):before,
+        .breadcrumb2 .secondary.breadcrumb2-item-md:focus:not(.no-hover-effect):before,
+        .breadcrumb2 .secondary.breadcrumb2-item-sm:hover:not(.no-hover-effect):before,
+        .breadcrumb2 .secondary.breadcrumb2-item-sm:focus:not(.no-hover-effect):before {
+        border-left-color: var(--bs-gray);
+        }
 
-/*breadcrumb2-item light color -----------------------------------*/
-.breadcrumb2 .light.breadcrumb2-item,
-.breadcrumb2 .light.breadcrumb2-item-md,
-.breadcrumb2 .light.breadcrumb2-item-sm {
-    background-color: var(--bs-light);
-    color: var(--bs-black);
-}
+        /*breadcrumb2-item light color -----------------------------------*/
+        .breadcrumb2 .light.breadcrumb2-item,
+        .breadcrumb2 .light.breadcrumb2-item-md,
+        .breadcrumb2 .light.breadcrumb2-item-sm {
+        background-color: var(--bs-light);
+        color: var(--bs-black);
+        }
 
-.breadcrumb2 .light.breadcrumb2-item:before,
-.breadcrumb2 .light.breadcrumb2-item-md:before,
-.breadcrumb2 .light.breadcrumb2-item-sm:before {
-    border-left-color: var(--bs-light);
-}
+        .breadcrumb2 .light.breadcrumb2-item:before,
+        .breadcrumb2 .light.breadcrumb2-item-md:before,
+        .breadcrumb2 .light.breadcrumb2-item-sm:before {
+        border-left-color: var(--bs-light);
+        }
 
-.breadcrumb2 .light.breadcrumb2-item:hover:not(.no-hover-effect),
-.breadcrumb2 .light.breadcrumb2-item:focus:not(.no-hover-effect),
-.breadcrumb2 .light.breadcrumb2-item-md:hover:not(.no-hover-effect),
-.breadcrumb2 .light.breadcrumb2-item-md:focus:not(.no-hover-effect),
-.breadcrumb2 .light.breadcrumb2-item-sm:hover:not(.no-hover-effect),
-.breadcrumb2 .light.breadcrumb2-item-sm:focus:not(.no-hover-effect) {
-    background-color: var(--bs-gray);
-    color: var(--bs-white);
-}
+        .breadcrumb2 .light.breadcrumb2-item:hover:not(.no-hover-effect),
+        .breadcrumb2 .light.breadcrumb2-item:focus:not(.no-hover-effect),
+        .breadcrumb2 .light.breadcrumb2-item-md:hover:not(.no-hover-effect),
+        .breadcrumb2 .light.breadcrumb2-item-md:focus:not(.no-hover-effect),
+        .breadcrumb2 .light.breadcrumb2-item-sm:hover:not(.no-hover-effect),
+        .breadcrumb2 .light.breadcrumb2-item-sm:focus:not(.no-hover-effect) {
+        background-color: var(--bs-gray);
+        color: var(--bs-white);
+        }
 
-.breadcrumb2 .light.breadcrumb2-item:hover:not(.no-hover-effect):before,
-.breadcrumb2 .light.breadcrumb2-item:focus:not(.no-hover-effect):before,
-.breadcrumb2 .light.breadcrumb2-item-md:hover:not(.no-hover-effect):before,
-.breadcrumb2 .light.breadcrumb2-item-md:focus:not(.no-hover-effect):before,
-.breadcrumb2 .light.breadcrumb2-item-sm:hover:not(.no-hover-effect):before,
-.breadcrumb2 .light.breadcrumb2-item-sm:focus:not(.no-hover-effect):before {
-                    border-left-color: var(--bs-gray);
-}
+        .breadcrumb2 .light.breadcrumb2-item:hover:not(.no-hover-effect):before,
+        .breadcrumb2 .light.breadcrumb2-item:focus:not(.no-hover-effect):before,
+        .breadcrumb2 .light.breadcrumb2-item-md:hover:not(.no-hover-effect):before,
+        .breadcrumb2 .light.breadcrumb2-item-md:focus:not(.no-hover-effect):before,
+        .breadcrumb2 .light.breadcrumb2-item-sm:hover:not(.no-hover-effect):before,
+        .breadcrumb2 .light.breadcrumb2-item-sm:focus:not(.no-hover-effect):before {
+        border-left-color: var(--bs-gray);
+        }
 
-/*breadcrumb2-item danger color -----------------------------------*/
-.breadcrumb2 .danger.breadcrumb2-item,
-.breadcrumb2 .danger.breadcrumb2-item-md,
-.breadcrumb2 .danger.breadcrumb2-item-sm {
-    background-color: var(--bs-danger);
-    color: var(--bs-white);
-}
+        /*breadcrumb2-item danger color -----------------------------------*/
+        .breadcrumb2 .danger.breadcrumb2-item,
+        .breadcrumb2 .danger.breadcrumb2-item-md,
+        .breadcrumb2 .danger.breadcrumb2-item-sm {
+        background-color: var(--bs-danger);
+        color: var(--bs-white);
+        }
 
-.breadcrumb2 .danger.breadcrumb2-item:before,
-.breadcrumb2 .danger.breadcrumb2-item-md:before,
-.breadcrumb2 .danger.breadcrumb2-item-sm:before {
-    border-left-color: var(--bs-danger);
-}
+        .breadcrumb2 .danger.breadcrumb2-item:before,
+        .breadcrumb2 .danger.breadcrumb2-item-md:before,
+        .breadcrumb2 .danger.breadcrumb2-item-sm:before {
+        border-left-color: var(--bs-danger);
+        }
 
-.breadcrumb2 .danger.breadcrumb2-item:hover:not(.no-hover-effect),
-.breadcrumb2 .danger.breadcrumb2-item:focus:not(.no-hover-effect),
-.breadcrumb2 .danger.breadcrumb2-item-md:hover:not(.no-hover-effect),
-.breadcrumb2 .danger.breadcrumb2-item-md:focus:not(.no-hover-effect),
-.breadcrumb2 .danger.breadcrumb2-item-sm:hover:not(.no-hover-effect),
-.breadcrumb2 .danger.breadcrumb2-item-sm:focus:not(.no-hover-effect) {
-                background-color: var(--bs-gray);
-    color: var(--bs-white);
-}
+        .breadcrumb2 .danger.breadcrumb2-item:hover:not(.no-hover-effect),
+        .breadcrumb2 .danger.breadcrumb2-item:focus:not(.no-hover-effect),
+        .breadcrumb2 .danger.breadcrumb2-item-md:hover:not(.no-hover-effect),
+        .breadcrumb2 .danger.breadcrumb2-item-md:focus:not(.no-hover-effect),
+        .breadcrumb2 .danger.breadcrumb2-item-sm:hover:not(.no-hover-effect),
+        .breadcrumb2 .danger.breadcrumb2-item-sm:focus:not(.no-hover-effect) {
+        background-color: var(--bs-gray);
+        color: var(--bs-white);
+        }
 
-.breadcrumb2 .danger.breadcrumb2-item:hover:not(.no-hover-effect):before,
-.breadcrumb2 .danger.breadcrumb2-item:focus:not(.no-hover-effect):before,
-.breadcrumb2 .danger.breadcrumb2-item-md:hover:not(.no-hover-effect):before,
-.breadcrumb2 .danger.breadcrumb2-item-md:focus:not(.no-hover-effect):before,
-.breadcrumb2 .danger.breadcrumb2-item-sm:hover:not(.no-hover-effect):before,
-.breadcrumb2 .danger.breadcrumb2-item-sm:focus:not(.no-hover-effect):before {
-                    border-left-color: var(--bs-gray);
-}
+        .breadcrumb2 .danger.breadcrumb2-item:hover:not(.no-hover-effect):before,
+        .breadcrumb2 .danger.breadcrumb2-item:focus:not(.no-hover-effect):before,
+        .breadcrumb2 .danger.breadcrumb2-item-md:hover:not(.no-hover-effect):before,
+        .breadcrumb2 .danger.breadcrumb2-item-md:focus:not(.no-hover-effect):before,
+        .breadcrumb2 .danger.breadcrumb2-item-sm:hover:not(.no-hover-effect):before,
+        .breadcrumb2 .danger.breadcrumb2-item-sm:focus:not(.no-hover-effect):before {
+        border-left-color: var(--bs-gray);
+        }
         /**End CSS Button**/
 
         .modal#statusSuccessModal .modal-content,
         .modal#statusErrorsModal .modal-content {
-            border-radius: 30px;
+        border-radius: 30px;
         }
 
         .modal#statusSuccessModal .modal-content svg,
         .modal#statusErrorsModal .modal-content svg {
-            width: 100px;
-            display: block;
-            margin: 0 auto;
+        width: 100px;
+        display: block;
+        margin: 0 auto;
         }
 
         .modal#statusSuccessModal .modal-content .path,
         .modal#statusErrorsModal .modal-content .path {
-            stroke-dasharray: 1000;
-            stroke-dashoffset: 0;
+        stroke-dasharray: 1000;
+        stroke-dashoffset: 0;
         }
 
         .modal#statusSuccessModal .modal-content .path.circle,
         .modal#statusErrorsModal .modal-content .path.circle {
-            -webkit-animation: dash 0.9s ease-in-out;
-            animation: dash 0.9s ease-in-out;
+        -webkit-animation: dash 0.9s ease-in-out;
+        animation: dash 0.9s ease-in-out;
         }
 
         .modal#statusSuccessModal .modal-content .path.line,
         .modal#statusErrorsModal .modal-content .path.line {
-            stroke-dashoffset: 1000;
-            -webkit-animation: dash 0.95s 0.35s ease-in-out forwards;
-            animation: dash 0.95s 0.35s ease-in-out forwards;
+        stroke-dashoffset: 1000;
+        -webkit-animation: dash 0.95s 0.35s ease-in-out forwards;
+        animation: dash 0.95s 0.35s ease-in-out forwards;
         }
 
         .modal#statusSuccessModal .modal-content .path.check,
         .modal#statusErrorsModal .modal-content .path.check {
-            stroke-dashoffset: -100;
-            -webkit-animation: dash-check 0.95s 0.35s ease-in-out forwards;
-            animation: dash-check 0.95s 0.35s ease-in-out forwards;
+        stroke-dashoffset: -100;
+        -webkit-animation: dash-check 0.95s 0.35s ease-in-out forwards;
+        animation: dash-check 0.95s 0.35s ease-in-out forwards;
         }
 
         @@-webkit-keyframes dash {
-            0% {
-                stroke-dashoffset: 1000;
-            }
+        0% {
+        stroke-dashoffset: 1000;
+        }
 
-            100% {
-                stroke-dashoffset: 0;
-            }
+        100% {
+        stroke-dashoffset: 0;
+        }
         }
 
         @@keyframes dash {
-            0% {
-                stroke-dashoffset: 1000;
-            }
+        0% {
+        stroke-dashoffset: 1000;
+        }
 
-            100% {
-                stroke-dashoffset: 0;
-            }
+        100% {
+        stroke-dashoffset: 0;
+        }
         }
 
         @@-webkit-keyframes dash {
-            0% {
-                stroke-dashoffset: 1000;
-            }
+        0% {
+        stroke-dashoffset: 1000;
+        }
 
-            100% {
-                stroke-dashoffset: 0;
-            }
+        100% {
+        stroke-dashoffset: 0;
+        }
         }
 
         @@keyframes dash {
-            0% {
-                stroke-dashoffset: 1000;
-            }
+        0% {
+        stroke-dashoffset: 1000;
+        }
 
-            100% {
-                stroke-dashoffset: 0;
-            }
+        100% {
+        stroke-dashoffset: 0;
+        }
         }
 
         @@-webkit-keyframes dash-check {
-            0% {
-                stroke-dashoffset: -100;
-            }
+        0% {
+        stroke-dashoffset: -100;
+        }
 
-            100% {
-                stroke-dashoffset: 900;
-            }
+        100% {
+        stroke-dashoffset: 900;
+        }
         }
 
         @@keyframes dash-check {
-            0% {
-                stroke-dashoffset: -100;
-            }
+        0% {
+        stroke-dashoffset: -100;
+        }
 
-            100% {
-                stroke-dashoffset: 900;
-            }
+        100% {
+        stroke-dashoffset: 900;
+        }
         }
 
         .box00 {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
         }
 
         .disabledbutton {
-            pointer-events: none;
-            opacity: 0.4;
+        pointer-events: none;
+        opacity: 0.4;
         }
     </style>
 
@@ -666,6 +668,37 @@
                 </div>
             </div>
             <div class="data-scrollbar" data-scroll="1">
+                <!--Start Menu-->
+                <nav class="iq-sidebar-menu">
+                    <ul id="iq-sidebar-toggle" class="iq-menu">
+                        <li class="">
+                            <a class="svg-icon" asp-area="" asp-controller="Room" asp-action="Index">
+                                <i class="ri-hotel-bed-line"></i>
+                                <span class="ml-4">Room</span>
+                            </a>
+                        </li>
+                        @if (!string.IsNullOrEmpty(Fullname) && !IsAdmin)
+                        {
+                            <li class="">
+                                <a class="svg-icon" asp-area="" asp-controller="Room" asp-action="Index">
+                                    <i class="ri-book-fill"></i>
+                                    <span class="ml-4">My Booking</span>
+                                </a>
+                            </li>
+                        }
+                        @if (string.IsNullOrEmpty(Fullname))
+                        {
+                            <li class="">
+                                <a class="svg-icon" asp-area="" asp-controller="Login" asp-action="Login">
+                                    <i class="ri-login-box-line"></i>
+                                    <span class="ml-4">Login</span>
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </nav>
+                <!--End Menu-->
+
                 <div class="pt-5 pb-2"></div>
             </div>
         </div>
@@ -751,14 +784,14 @@
             <div class="row">
                 <div class="col-lg-6">
                     <ul class="list-inline mb-0">
-                        <li class="list-inline-item">PT.INTIKOM BERLIAN MUSTIKA</li>
+                        <li class="list-inline-item">INTERVIEW SWAPRO</li>
                         <li class="list-inline-item"></li>
                     </ul>
                 </div>
                 <div class="col-lg-6 text-right">
                     <span class="mr-1">
                         <script>document.write(new Date().getFullYear())</script>©
-                    </span> <a href="#" class="">PSS</a>.
+                    </span> <a href="#" class="">Taufiq Fitriansyah</a>.
                 </div>
             </div>
         </div>
@@ -792,7 +825,7 @@
         $(document).ready(function(){
             var curFullName = $("#CurFullName").val();
             if(curFullName == "" || curFullName == null || curFullName == undefined){
-                window.location.href = '@Url.Action("Login", "Login")';
+                // window.location.href = '@Url.Action("Login", "Login")';
             }
             ModalDialogDraggable("dialog");
         });

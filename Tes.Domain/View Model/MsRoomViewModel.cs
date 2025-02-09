@@ -9,6 +9,6 @@ namespace Tes.Domain
     public class MsRoomViewModel
     {
         public string? FormMode { get; set; } = "View";
-        public MsRoomResponse? Product { get; set; }
+        public MsRoomResponse? Room { get; set; }
     }
 }

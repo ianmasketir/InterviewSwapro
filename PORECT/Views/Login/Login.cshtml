@@ -107,9 +107,12 @@
 						<div class="iq-alert-text">@ViewBag.message</div>
 					</div>
 					}
+					<div class="mt-2" style="display:flex">
+						<button class="btn btn-outline-info btn-register mx-1" style="border-radius:20px; width:100%" onclick="Register('Customer')">Register Customer</button>
+						<button class="btn btn-outline-info btn-register" style="border-radius:20px; width:100%" onclick="Register('Admin')">Register Admin</button>
+					</div>
 
 				</form>
-				<button class="btn btn-outline-info btn-register mt-2" style="border-radius:20px; width:100%">Register</button>
 			</div>
 		</div>
 	</div>
@@ -154,15 +157,18 @@
 		});
 
 		ModalDialogDraggable("dialog");
-		$(".btn-register").click(function(){
+		function Register(type){
+			var entity = {
+				FormMode: type
+			};
 			var param = {
 				param1: '@Url.Action("Register", "Login")',
-				param2: null,
+				param2: entity,
 				param3: "Register",
 				param4: "dialog"
 			};
 			OpenPopup(param);
-		});
+		};
 	</script>
 	<!--===============================================================================================-->
 	<script src="~/login/js/main.js"></script>

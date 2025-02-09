@@ -1,5 +1,6 @@
 ﻿@using Tes.Domain
 @using PORECT.Helper
+@model GeneralViewModel;
 @{
     Layout = null;
 }
@@ -12,6 +13,7 @@
                     <div class="row">
                         <div class="form-group col-md-6">
                             <label><span class="mandatory">First Name</span>:</label>
+                            @Html.HiddenFor(x => Model.FormMode)
                             @Html.TextBox("FirstName", null, new { @class = "form-control", required = "required", maxlength = 100 })
                         </div>
                         <div class="form-group col-md-6">
@@ -45,11 +47,11 @@
         {
             if(lastName == "")
             {
-                username = firstName.replace(" ", "").substring(0, 10);
+                username = firstName.replace(" ", "").substring(0, 50);
             }
             else
             {
-                username = firstName.replace(" ", "").substring(0, 1) + lastName.replace(" ", "").substring(0, 9);
+                username = firstName.replace(" ", "").substring(0, 1) + lastName.replace(" ", "").substring(0, 49);
             }
         }
         $("#Username").val(username);
@@ -62,13 +64,20 @@
         var Password = $("#Password").val();
         var FirstName = $("#FirstName").val();
         var LastName = $("#LastName").val();
+        var FormMode = $("#FormMode").val();
+
+        var Roles = [{
+            colName: "Add",
+            value: FormMode
+        }];
 
         var entity = {
             TransactionType: "Insert",
             Username: Username,
             Password: Password,
             FirstName: FirstName,
-            LastName: LastName
+            LastName: LastName,
+            Roles: Roles
         };
         // debugger;
         ConfirmationMessage("Confirmation",

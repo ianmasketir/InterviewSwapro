@@ -4,7 +4,7 @@ namespace PORECT.Controllers
 {
 	public class LandingPageController : ParentController
     {
-        public LandingPageController(IServiceProvider serviceProvider, IHttpContextAccessor contextAccessor) : base(serviceProvider, contextAccessor)
+        public LandingPageController(IServiceProvider serviceProvider, IHttpContextAccessor contextAccessor) : base(contextAccessor, serviceProvider)
         {
 
         }

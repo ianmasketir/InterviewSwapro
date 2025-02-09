@@ -65,6 +65,7 @@ app.UseCors("corsapp");
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Login}/{action=Login}/{id?}");
+    //pattern: "{controller=Login}/{action=Login}/{id?}");
+    pattern: "{controller=Room}/{action=Index}");
 
 app.Run();

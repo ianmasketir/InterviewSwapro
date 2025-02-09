@@ -48,7 +48,7 @@ namespace PORECT.API.Controllers
         /// <remarks>
         /// Sample request:
         /// 
-        ///     POST /Room/ListBooking
+        ///     GET /Room/ListBooking
         ///     {
         ///         "Name": "Username",
         ///         "Code": "RoomCode"
@@ -217,7 +217,7 @@ namespace PORECT.API.Controllers
         /// <remarks>
         /// Sample request:
         /// 
-        ///     POST /Room/DownloadTemplate
+        ///     GET /Room/DownloadTemplate
         ///     {
         ///         "Value": "Room/Booking",
         ///         "Text": ""
@@ -254,6 +254,49 @@ namespace PORECT.API.Controllers
                 throw;
             }
         }
+        /// <summary>
+        /// Download template for upload Room/Booking data
+        /// </summary>
+        /// <param name="data">Value = type template</param>
+        /// <returns>Template file (excel) as byte array</returns>
+        /// <remarks>
+        /// Sample request:
+        /// 
+        ///     GET /Room/DownloadTemplateStream
+        ///     {
+        ///         "Value": "Room/Booking",
+        ///         "Text": ""
+        ///     }
+        /// </remarks>
+        [HttpGet("DownloadTemplateStream")]
+        public IActionResult DownloadTemplateStream([FromQuery] ListChoiceWithString data)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(data.Value.Trim()) ||
+                    (data.Value.ToLower().Trim() != UploadTemplateTypeEnum.Room.ToString().ToLower() &&
+                    data.Value.ToLower().Trim() != UploadTemplateTypeEnum.Booking.ToString().ToLower()))
+                    return BadRequest("Template not found");
+
+                string type = data.Value.ToLower().Trim() == UploadTemplateTypeEnum.Room.ToString().ToLower() ?
+                                UploadTemplateTypeEnum.Room.ToString() : UploadTemplateTypeEnum.Booking.ToString();
+                string filePath = data.Value.ToLower() == UploadTemplateTypeEnum.Room.ToString().ToLower() ?
+                                    AppConfig.Config.MsRoomTemplate.Upload : AppConfig.Config.RoomBookingTemplate.Upload;
+                if (!System.IO.File.Exists(filePath))
+                    return NotFound("Template not found");
+
+                var result = new TransactionResponse
+                {
+                    Data = Helper.FileHelper.DoDownload(filePath).FileByte
+                };
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                logger.WriteErrorToLog(ex, "MsRoom", "DownloadTemplateStream");
+                throw;
+            }
+        }
 
         /// <summary>
         /// Get Room Booking Report based on period
@@ -263,7 +306,7 @@ namespace PORECT.API.Controllers
         /// <remarks>
         /// Sample request:
         /// 
-        ///     POST /Room/GetReport
+        ///     GET /Room/DownloadReportBooking
         ///     {
         ///         "Value": period.Year,
         ///         "Text": "period.Month"
@@ -299,6 +342,51 @@ namespace PORECT.API.Controllers
             catch (System.Exception ex)
             {
                 logger.WriteErrorToLog(ex, "MsRoom", "DownloadReportBooking");
+                return StatusCode(StatusCodes.Status500InternalServerError, ex);
+            }
+        }
+        /// <summary>
+        /// Get Room Booking Report based on period
+        /// </summary>
+        /// <param name="data">Period to search. Text = period.Month.ToString(), Value = period.Year.</param>
+        /// <returns>Excel file as byte array.</returns>
+        /// <remarks>
+        /// Sample request:
+        /// 
+        ///     POST /Room/DownloadReportBookingStream
+        ///     {
+        ///         "Value": period.Year,
+        ///         "Text": "period.Month"
+        ///     }
+        /// </remarks>
+        [HttpGet("DownloadReportBookingStream")]
+        public IActionResult DownloadReportBookingStream([FromQuery] ListChoiceWithId data)
+        {
+            try
+            {
+                if (int.TryParse(data.Text, out int month) == false)
+                    data.Text = string.Empty;
+
+                var file = _repository.DownloadReportBooking(data);
+
+                if (file.Length == 0)
+                {
+                    return Ok(new TransactionResponse
+                    {
+                        IsSuccess = false,
+                        Message = "Fail to write data to excel"
+                    });
+                }
+
+                var result = new TransactionResponse
+                {
+                    Data = file
+                };
+                return Ok(result);
+            }
+            catch (System.Exception ex)
+            {
+                logger.WriteErrorToLog(ex, "MsRoom", "DownloadReportBookingStream");
                 return StatusCode(StatusCodes.Status500InternalServerError, ex);
             }
         }

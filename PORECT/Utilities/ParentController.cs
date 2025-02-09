@@ -1,21 +1,19 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using PORECT.Helper;
 using Tes.Domain;
 
 namespace PORECT
 {
+    [EnableCors("corsapp")]
     public class ParentController : Controller
     {
         protected readonly PORECTLog logger = new PORECTLog();
         protected readonly ApiProcessHelper _api = new ApiProcessHelper();
         protected readonly IHttpContextAccessor _contextAccessor;
 
-        public ParentController()
-        {
-            
-        }
-        public ParentController(IServiceProvider? serviceProvider, IHttpContextAccessor? contextAccessor = null)
+        public ParentController(IHttpContextAccessor? contextAccessor = null, IServiceProvider? serviceProvider = null)
         {
             if (contextAccessor != null)
                 _contextAccessor = contextAccessor;

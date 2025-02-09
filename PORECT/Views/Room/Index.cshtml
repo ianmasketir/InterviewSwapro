@@ -1,0 +1,245 @@
+﻿@using PORECT.Helper
+@model List<Tes.Domain.MsRoomResponse>
+@{
+    ViewData["Title"] = "Index";
+    string? username = Context.Session.GetString("Username");
+    string? roles = Context.Session.GetString("Roles");
+    bool IsAdmin = !string.IsNullOrEmpty(roles) && roles.Split(';').Any(x => x.ToLower() == "admin");
+    int count = 1;
+}
+
+<div class="row">
+    <div class="col-sm-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between">
+                <div class="header-title">
+                    <h4 class="card-title">Room</h4>
+                </div>
+            </div>
+            @if (!string.IsNullOrEmpty(username))
+            {
+                <div class="mt-3" style="padding-left:10px">
+                    @Html.HiddenFor(x => IsAdmin)
+                    @if (IsAdmin)
+                    {
+                        <button class="btn btn-primary rounded-pill" onclick="Detail('Insert')">
+                            <i class="ri-add-circle-fill" style="position:relative; top:2px;"></i>
+                            Create New
+                        </button>
+                        <button class="btn-downloadTemplate room btn btn-outline-warning rounded-pill" style="margin:0 5px;">
+                            <i class="ri-download-line" style="position:relative; top:2px;"></i>
+                            Download Template Room
+                        </button>
+                        <button class="btn-download btn btn-outline-primary rounded-pill">
+                            <i class="ri-download-line" style="position:relative; top:2px;"></i>
+                            Download Report
+                        </button>
+                    }
+                    <div class="input-group" style="display:none;">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">Upload</span>
+                        </div>
+                        <div class="custom-file">
+                            @Html.TextBox("File", default, new { @class = "form-control custom-file-input", type = "file", accept = ".xls, .xlsx" })
+                            <label class="custom-file-label" for="logo">Choose file</label>
+                        </div>
+                    </div>
+                    <button class="btn-upload btn btn-outline-info rounded-pill" style="margin:0 5px;">
+                        <i class="ri-upload-line" style="position:relative; top:2px;"></i>
+                        Upload
+                    </button>
+                    <button class="btn-downloadTemplate booking btn btn-outline-warning rounded-pill" style="margin:0 5px;">
+                        <i class="ri-download-line" style="position:relative; top:2px;"></i>
+                        Download Template Booking
+                    </button>
+                </div>
+            }
+            <div class="card-body">
+
+                <div class="table-responsive">
+                    <table id="datatable" class="table data-table table-hover dataTable" style="font-size:12px">
+                        <thead>
+                            <tr class="ligth">
+                                <th>No</th>
+                                <th>Room Code</th>
+                                <th>Name</th>
+                                <th>Capacity</th>
+                                <th>Price</th>
+                                <th>Status</th>
+                                @if (!string.IsNullOrEmpty(username))
+                                {
+                                <th>Action</th>
+                                }
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        @Html.Raw(count++)
+                                        <span class="productId" style="display:none">@item.ID</span>
+                                    </td>
+                                    <td>
+                                        <span class="code">@item.Code</span>
+                                    </td>
+                                    <td>
+                                        <span class="name">@item.Name</span>
+                                    </td>
+                                    <td>
+                                        <span class="name">@item.Capacity</span>
+                                    </td>
+                                    <td>
+                                        <span class="price">
+                                            @string.Format("Rp. {0}", item.Price.ToString("N2"))
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="status">@(
+                                        !string.IsNullOrEmpty(item.BookingStatus) && item.BookingStatus != RoomStatusEnum.CheckedOut.ToString() ? 
+                                            item.BookingStatus : "Available"
+                                        )</span>
+                                    </td>
+                                    @if (!string.IsNullOrEmpty(username))
+                                    {
+                                    <td>
+                                        @if (IsAdmin)
+                                        {
+                                            <a class="btn-edit btn btn-sm bg-primary" data-toggle="tooltip" data-placement="left" title="" data-original-title="Edit" onclick="Detail('Update', '@item.Code')">
+                                                <i class="ri-xl ri-pencil-line mr-0" style="position:relative; top:3px;"></i>
+                                            </a>
+                                            <a class="btn-delete btn btn-sm bg-success" data-toggle="tooltip" data-placement="left" title="" data-original-title="Enable" onclick="Detail('Disable', '@item.Name', '@item.Code')">
+                                                <i class="ri-xl ri-checkbox-circle-line mr-0" style="position:relative; top:3px;"></i>
+                                            </a>
+                                            <a class="btn-delete btn btn-sm bg-danger" data-toggle="tooltip" data-placement="left" title="" data-original-title="Disable" onclick="Detail('Disable', '@item.Name', '@item.Code')">
+                                                <i class="ri-xl ri-close-circle-line mr-0" style="position:relative; top:3px;"></i>
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <a class="btn-edit btn btn-sm bg-success" data-toggle="tooltip" data-placement="left" title="" data-original-title="Book" onclick="Detail('Book', '@item.Code')">
+                                                <i class="ri-xl ri-book-fill mr-0" style="position:relative; top:3px;"></i>
+                                            </a>
+                                        }
+                                    </td>
+                                    }
+                                </tr>
+                            }
+                        <tfoot>
+                            <tr>
+                                <th>No</th>
+                                <th>Product Code</th>
+                                <th>Name</th>
+                                <th>Capacity</th>
+                                <th>Price</th>
+                                <th>Status</th>
+                                @if (!string.IsNullOrEmpty(username))
+                                {
+                                <th>Action</th>
+                                }
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@await Html.PartialAsync("_PopupDialog")
+
+<style>
+    .mandatory:after {
+        content: "*";
+        color: red;
+        margin: 0 5px;
+    }
+    #dialog .modal-dialog{
+        width:700px;
+    }
+</style>
+
+<script>
+    function Detail(transType, name, code){
+        debugger;
+        // var id = null;
+        // if(transType != "Insert"){
+        //     id = $(this).closest("tr").find(".userId").val();
+        // }
+        var entity = {
+            ID: id,
+            FormMode: transType
+        };
+        var title = "Create New Product";
+        if(transType == "Update"){
+            title = "Edit Product";
+        }
+
+        if(transType == "Insert" || transType == "Update"){
+            // debugger;
+            var param = {
+                param1: '@Url.Action("Detail", "Product")',
+                param2: entity,
+                param3: title,
+                param4: "dialog"
+            };
+            OpenPopup(param);
+        }
+        else{
+            // var name = $(this).closest("tr").find(".name").text();
+            // var code = $(this).closest("tr").find(".code").text();
+            entity = {
+                TransactionType: transType,
+                ID: id,
+                ProductCode: code
+            };
+            ConfirmationMessage("Confirmation",
+                 "Are you sure you want to " + transType.toLowerCase() + " product " + name + "?",
+                "question", "Yes", "Success",
+                "Data deleted successfully.", "DataTransaction",
+                {entity: entity, param1: '@Url.Action("Submit", "Product")',
+                param2: 'Delete', param3: null}
+            );
+        }
+    }
+
+    $(".btn-view").click(function(){
+        var id = $(this).closest("tr").find(".productId").val();
+        var entity = {
+            ID: id
+        };
+        var param = {
+            param1: '@Url.Action("Detail", "Product")',
+            param2: entity,
+            param3: "Detail Item",
+            param4: "dialog"
+        };
+        OpenPopup(param);
+    });
+
+    $(".btn-upload").click(function(){
+        $("#File").click();
+    });
+
+    $(".btn-downloadTemplate").click(function(){
+        if($(this).hasClass("room")){
+            window.location.href = '@Url.Action("DownloadTemplate", "Room")' + '?Value=Room';
+        }
+        else if($(this).hasClass("booking")){
+            window.location.href = '@Url.Action("DownloadTemplate", "Room")' + '?Value=Booking';
+        }
+    });
+
+    $(".btn-download").click(function(){
+        // debugger;
+        var entity = {};
+        var param = {
+            param1: '@Url.Action("Download", "Room")',
+            param2: entity,
+            param3: "Download Report",
+            param4: "dialog"
+        };
+        OpenPopup(param);
+    });
+
+</script>

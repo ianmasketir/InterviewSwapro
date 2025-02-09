@@ -8,16 +8,16 @@ namespace PORECT.Controllers
 {
     public class LoginController : ParentController
     {
-        public LoginController(IHttpContextAccessor contextAccessor) : base(null, contextAccessor)
+        public LoginController(IHttpContextAccessor contextAccessor) : base(contextAccessor)
         {
 
         }
 
-        public IActionResult Register()
+        public IActionResult Register(GeneralViewModel data)
         {
             try
             {
-                return View("_Register");
+                return View("_Register", data);
             }
             catch (Exception ex)
             {
@@ -71,7 +71,7 @@ namespace PORECT.Controllers
             }
             catch (Exception ex)
             {
-                logger.WriteErrorToLog(ex, "AppUsers", "Submit");
+                logger.WriteErrorToLog(ex, "Login", "NewUser");
                 throw;
             }
         }
@@ -130,8 +130,9 @@ namespace PORECT.Controllers
                                                                                         string.Concat(" ", isfoundUsername.LastName) : string.Empty));
                                 _contextAccessor.HttpContext.Session.SetString("Username", !string.IsNullOrEmpty(isfoundUsername.Username) ? 
                                                                                 isfoundUsername.Username : string.Empty);
+                                _contextAccessor.HttpContext.Session.SetString("Roles", string.Join(';', isfoundUsername.Roles.Select(x => x).ToList()));
                                 #endregion Detail User
-                                return RedirectToAction("Index", "LandingPage");
+                                return RedirectToAction("Index", "Room");
                             }
                             else
                             {

@@ -1,0 +1,133 @@
+﻿@using Tes.Domain
+@using PORECT.Helper
+@{
+    Layout = null;
+    List<ListChoiceWithId> ListMonth = new List<ListChoiceWithId>();
+    for (int i = 1; i < 13; i++)
+    {
+        var month = new ListChoiceWithId
+        {
+            Value = i,
+            Text = i.ToMonthEnum().ToString()
+        };
+        ListMonth.Add(month);
+    }
+    List<int> ListYear = new List<int>();
+    for (int i = 2000; i <= DateTime.Now.Year; i++)
+    {
+        ListYear.Add(i);
+    }
+}
+
+<div class="row">
+    <div class="col-sm-12 col-md-12 mb-2">
+        <form id="FormDetail">
+            <div class="row">
+                <div class="form-group col-md-6">
+                    <label><span>Period Month</span>:</label>
+                    <select class="selectpicker form-control" data-live-search="true" id="PeriodMonth">
+                        <option value="">-- Please Select --</option>
+                        @foreach (var tmp in ListMonth)
+                        {
+                            <option value="@tmp.Value">@tmp.Text</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group col-md-6">
+                    <label><span class="mandatory">Period Year</span>:</label>
+                    <select class="selectpicker form-control" data-live-search="true" id="PeriodYear" required="required">
+                        <option value="">-- Please Select --</option>
+                        @foreach (var tmp in ListYear.OrderByDescending(x => x))
+                        {
+                            <option value="@tmp">@tmp</option>
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="download-info alert text-white bg-info" role="alert" style="display:none;">
+                <div class="iq-alert-icon">
+                    <i class="ri-error-warning-line"></i>
+                </div>
+                <div class="iq-alert-text">
+                    <div class="form-group mb-0">
+                        <label class="text-white mb-0">Period to download:</label>
+                        <label class="period text-white mb-0"></label>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12 mt-1">
+                    <button type="submit" class="btn btn-primary btn-download-form" style="width:100%">Download</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    #dialog .modal-dialog{
+        max-width:430px;
+    }
+</style>
+
+<script>
+    $(document).ready(function () {
+        // Initialize Bootstrap-select after DOM is ready
+        $(".selectpicker").selectpicker();
+    });
+
+    $("#Period").on("input", function(){
+        // debugger;
+        var value = $(this).val();
+        // $(".period").text(GetPeriod(value));
+        // if(value != "" && value != null && value != undefined){
+        //     $(".download-info").show();
+        // }
+        // else{
+        //     $(".download-info").hide();
+        // }
+    });
+
+    $("#FormDetail").submit(function(e){
+        e.preventDefault();
+
+        // debugger;
+        // var period = $("#Period").val();
+        // var text = $(".download-info .period").text();
+        // window.location.href = '@Url.Action("DownloadReportBooking", "Room")' + '?value=' +  period + '&text=' + text;
+        var month = $("#PeriodMonth").val();
+        var year = $("#PeriodYear").val();
+        var entity = {
+            Text: month,
+            Value: year
+        };
+        var param = {
+            // param1: '@Url.Action("DownloadReportBooking", "Room")' + '?month=' +  month + '&year=' + year
+            param1: '@Url.Action("DownloadReportBooking", "Room")',
+            entity: entity
+        };
+        Download(param);
+    });
+
+    function GetPeriod(value){
+        // debugger;
+        var result = "";
+        if(value != "" && value != null && value != undefined){
+            var splits = value.split("-");
+            result = splits[0];
+            if(splits.length > 1){
+                var month = ConvertMonth(splits[1]);
+                if(month != ""){
+                    result = month + " " + result;
+                }
+            }
+        }
+        return result;
+    }
+
+</script>
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

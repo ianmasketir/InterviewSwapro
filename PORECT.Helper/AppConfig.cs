@@ -99,7 +99,7 @@ namespace PORECT.Helper
             {
                 public Cfg_APIAuth Auth { get; set; }
                 public Cfg_APIUser User { get; set; }
-                public Cfg_APIProduct Product { get; set; }
+                public Cfg_APIRoom Room { get; set; }
             }
             public class Cfg_APIAuth
             {
@@ -113,11 +113,19 @@ namespace PORECT.Helper
                 public Cfg_BaseAPI List { get; set; }
                 public Cfg_BaseAPI Submit { get; set; }
             }
-            public class Cfg_APIProduct
+            public class Cfg_APIRoom
             {
                 public string BaseUrl { get; set; }
                 public Cfg_BaseAPI List { get; set; }
+                public Cfg_BaseAPI ListBooking { get; set; }
                 public Cfg_BaseAPI Submit { get; set; }
+                public Cfg_BaseAPI UploadRoom { get; set; }
+                public Cfg_BaseAPI SubmitRoomBooking { get; set; }
+                public Cfg_BaseAPI UploadBooking { get; set; }
+                public Cfg_BaseAPI DownloadTemplate { get; set; }
+                public Cfg_BaseAPI DownloadTemplateStream { get; set; }
+                public Cfg_BaseAPI DownloadReportBooking { get; set; }
+                public Cfg_BaseAPI DownloadReportBookingStream { get; set; }
             }
             #endregion Get Configuration
 
