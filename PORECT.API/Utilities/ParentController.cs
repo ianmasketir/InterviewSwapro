@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Cors;
 
 namespace PORECT.API
 {
-    //[Authorize]
+    [Authorize]
     [EnableCors("corsapp")]
     public class ParentController : Controller
     {

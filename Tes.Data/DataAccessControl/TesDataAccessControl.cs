@@ -59,6 +59,40 @@ namespace Tes.Data
                 }
             }
         }
+        public async Task<List<BookingResponse>> GetListBookingAsync(SearchRoomRequest dto)
+        {
+            using (var context = new DataContext())
+            {
+                if (context == null || context.Bookings == null)
+                    throw new ArgumentNullException("Db context not found");
+
+                try
+                {
+                    var result = await (from b in context.Bookings
+                                        where (string.IsNullOrEmpty(dto.Code) || b.RoomCode.ToLower() == dto.Code.ToLower().Trim()) &&
+                                              (string.IsNullOrEmpty(dto.Name) || b.Username.ToLower() == dto.Name.ToLower().Trim())
+                                        select new BookingResponse
+                                        {
+                                            ObjectID = b.ObjectId,
+                                            Code = b.RoomCode,
+                                            Username = b.Username,
+                                            Duration = b.Duration,
+                                            CheckInDate = b.CheckInDate,
+                                            CheckOutDate = b.CheckOutDate,
+                                            Status = b.Status,
+                                            CreatedBy = b.CreatedBy,
+                                            CreatedDtm = b.CreatedDtm,
+                                            UpdatedBy = b.UpdatedBy,
+                                            UpdatedDtm = b.UpdatedDtm
+                                        }).ToListAsync();
+                    return result;
+                }
+                catch
+                {
+                    throw;
+                }
+            }
+        }
         public async Task<List<MsRoomResponse>> GetListRoomAsync(SearchRoomRequest dto)
         {
             using (var context = new DataContext())
@@ -104,32 +138,31 @@ namespace Tes.Data
                                               (string.IsNullOrEmpty(dto.Code) || r.Code.ToLower() == dto.Code.ToLower().Trim()) &&
                                               (string.IsNullOrEmpty(dto.Name) || r.Name.ToLower().Contains(dto.Name.ToLower().Trim())) &&
                                               (dto.Capacity == null || r.Capacity == dto.Capacity) &&
-                                              (string.IsNullOrEmpty(dto.BookingStatus) || 
-                                              (b!= null && b.Status.ToLower() == dto.BookingStatus.ToLower().Trim())) &&
+                                              (string.IsNullOrEmpty(dto.BookingStatus) ||
+                                              (b.Status != null && b.Status.ToLower() == dto.BookingStatus.ToLower().Trim())) &&
 
                                               ((dto.PriceFrom == null && dto.PriceTo == null) ||
                                                (dto.PriceFrom != null && dto.PriceTo == null && dto.PriceFrom <= r.Price) ||
                                                (dto.PriceFrom == null && dto.PriceTo != null && r.Price <= dto.PriceTo) ||
                                                (dto.PriceFrom != null && dto.PriceTo != null &&
                                                 dto.PriceFrom <= r.Price && r.Price <= dto.PriceTo)
-                                              )// &&
-                                              //((dto.AvailableFrom == null && dto.AvailableTo == null) ||
-                                              // (b != null && compareValues.Compare(b.CheckOutDate.Value, dto.AvailableFrom, dto.AvailableTo, "<=", ">=")
-                                              //                                  == true))
-                                              // (dto.AvailableFrom != null && dto.AvailableTo == null &&
-                                              //  (b == null ||
-                                              //  (b != null && dto.AvailableFrom.Value.Date <= b.CheckOutDate.Value.Date))
-                                              // ) ||
-                                              // (dto.AvailableFrom == null && dto.AvailableTo != null &&
-                                              //  (b == null ||
-                                              //  (b != null && b.CheckOutDate.Value.Date <= dto.AvailableTo.Value.Date))
-                                              // ) ||
-                                              // (dto.AvailableFrom != null && dto.AvailableTo != null &&
-                                              //  (b == null ||
-                                              //  (b != null &&
-                                              //   dto.AvailableFrom.Value.Date <= b.CheckOutDate.Value.Date &&
-                                              //   b.CheckOutDate.Value.Date <= dto.AvailableTo.Value.Date))
-                                              //))
+                                              ) &&
+                                              ((dto.AvailableFrom == null && dto.AvailableTo == null) ||
+                                               //(b != null && compareValues.Compare(b.CheckOutDate.Value, dto.AvailableFrom, dto.AvailableTo, "<=", ">=")
+                                               //                                 == true))
+                                               (dto.AvailableFrom != null && dto.AvailableTo == null &&
+                                                (b.Code == null || 
+                                                (b.CheckOutDate != null && dto.AvailableFrom.Value.Date <= b.CheckOutDate.Value.Date))
+                                               ) ||
+                                               (dto.AvailableFrom == null && dto.AvailableTo != null &&
+                                                (b.Code == null || 
+                                                (b.CheckOutDate != null && b.CheckOutDate.Value.Date <= dto.AvailableTo.Value.Date))
+                                               ) ||
+                                               (dto.AvailableFrom != null && dto.AvailableTo != null &&
+                                                (b.Code == null || (b.CheckOutDate != null &&
+                                                 dto.AvailableFrom.Value.Date <= b.CheckOutDate.Value.Date &&
+                                                 b.CheckOutDate.Value.Date <= dto.AvailableTo.Value.Date))
+                                              ))
                                         select new MsRoomResponse
                                         {
                                             ID = r.Id,
@@ -138,15 +171,16 @@ namespace Tes.Data
                                             Capacity = r.Capacity,
                                             Price = r.Price,
                                             BookingStatus = b.Code == null ? null : b.Status,
-                                            Booking = b,
+                                            //Booking = b,
                                             IsAvailable = b.Code == null || b.Status == RoomStatusEnum.CheckedOut.ToString(),
-                                            AvailableDate = b.Code == null ? Timestamp.Date : b.CheckOutDate,
+                                            AvailableDate = b.Code != null ? b.CheckOutDate :
+                                                dto.AvailableFrom ?? (new DateTime(2000, 1, 1)).Date,
                                             IsActive = r.IsActive ?? true,
                                             CreatedBy = r.CreatedBy,
                                             CreatedDtm = r.CreatedDtm,
                                             UpdatedBy = r.UpdatedBy,
                                             UpdatedDtm = r.UpdatedDtm
-                                        }).ToListAsync() :
+                                        }).Distinct().ToListAsync() :
                                  await (from r in context.MsRooms
                                         where (dto.ID == null || r.Id == dto.ID) &&
                                               (string.IsNullOrEmpty(dto.Code) || r.Code.ToLower() == dto.Code.ToLower().Trim()) &&
@@ -166,8 +200,9 @@ namespace Tes.Data
                                             Name = r.Name,
                                             Capacity = r.Capacity,
                                             Price = r.Price,
+                                            //Booking = new(),
                                             IsAvailable = true,
-                                            AvailableDate = Timestamp.Date,
+                                            AvailableDate = dto.AvailableFrom ?? (new DateTime(2000, 1, 1)).Date,
                                             IsActive = r.IsActive ?? true,
                                             CreatedBy = r.CreatedBy,
                                             CreatedDtm = r.CreatedDtm,
@@ -175,19 +210,58 @@ namespace Tes.Data
                                             UpdatedDtm = r.UpdatedDtm
                                         }).ToListAsync();
 
-                    if (dto.AvailableFrom != null && dto.AvailableTo != null)
-                        result = result.Where(x => x.IsActive == true &&
-                                    x.AvailableDate.Value.Date >= dto.AvailableFrom.Value.Date &&
-                                    x.AvailableDate.Value.Date <= dto.AvailableTo.Value.Date
-                                 ).ToList();
-                    else if (dto.AvailableFrom != null)
-                        result = result.Where(x => x.IsActive == true &&
-                                    x.AvailableDate.Value.Date >= dto.AvailableFrom.Value.Date
-                                 ).ToList();
-                    else if (dto.AvailableTo != null)
-                        result = result.Where(x => x.IsActive == true &&
-                                    x.AvailableDate.Value.Date <= dto.AvailableTo.Value.Date
-                                 ).ToList();
+                    return result;
+                }
+                catch
+                {
+                    throw;
+                }
+            }
+        }
+        public async Task<List<PORECT.Helper.ReportBookingResponse>> GetReportBookingAsync(ListChoiceWithId dto)
+        {
+            using (var context = new DataContext())
+            {
+                if (context == null || context.MsRooms == null || context.Bookings == null)
+                    throw new ArgumentNullException("Db context not found");
+
+                try
+                {
+                    var result = new List<PORECT.Helper.ReportBookingResponse>();
+
+                    int? month = string.IsNullOrEmpty(dto.Text) ? null :
+                                    Convert.ToInt32(dto.Text);
+                    //var qry = await context.MsRooms.Where(x => x.IsActive == true).ToListAsync();
+                    var qry = await (from r in context.MsRooms
+                                     join _b in context.Bookings on r.Code equals _b.RoomCode
+                                             into TblB
+                                     from b in TblB.DefaultIfEmpty()
+                                     where r.IsActive == true &&
+                                           (month == null || b.CheckInDate.Month == month) &&
+                                           b.CheckInDate.Year == dto.Value
+                                     select new
+                                     {
+                                         r.Code,
+                                         r.Name,
+                                         r.Price,
+                                         b
+                                     }).ToListAsync();
+                    for (int i = 0; i < qry.Count; i++)
+                    {
+                        if (!result.Any(x => x.RoomCode == qry[i].Code))
+                        {
+                            var data = new PORECT.Helper.ReportBookingResponse
+                            {
+                                No = i + 1,
+                                RoomCode = qry[i].Code,
+                                RoomName = !string.IsNullOrEmpty(qry[i].Name) ? qry[i].Name : qry[i].Code,
+                                BookedQty = qry.Where(x => x.b?.RoomCode != null && x.b?.RoomCode == qry[i].Code).ToList().Count,
+                                TotalDuration = qry.Where(x => x.b?.RoomCode != null && x.b?.RoomCode == qry[i].Code).ToList().Sum(x => x.b.Duration),
+                                TotalPrice = qry.Where(x => x.b?.RoomCode != null && x.b?.RoomCode == qry[i].Code).ToList().Sum(x => x.Price),
+                            };
+                            result.Add(data);
+                        }
+                    }
 
                     return result;
                 }
@@ -574,7 +648,7 @@ namespace Tes.Data
                         {
                             await transaction.RollbackAsync();
                             result.IsSuccess = false;
-                            result.Message = string.Format("{0} already booked room {1}", data.Username, data.Code);
+                            result.Message = string.Format("Room booking {0} from {1} already already exist", data.Code, data.Username);
                             result.Data = JsonConvert.SerializeObject(data);
                             return result;
                         }
@@ -600,7 +674,7 @@ namespace Tes.Data
                         {
                             await transaction.RollbackAsync();
                             result.IsSuccess = false;
-                            result.Message = string.Format("Room {0} already booked", data.Code);
+                            result.Message = string.Format("Room booking for {0} already exist", data.Code);
                             result.Data = JsonConvert.SerializeObject(data);
                             return result;
                         }

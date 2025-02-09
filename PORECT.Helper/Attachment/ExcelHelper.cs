@@ -96,8 +96,7 @@ namespace PORECT.Helper
         }
 
         #region Specific Module
-        //public byte[] DownloadReport(decimal total, string filePath, DateTime period, string createdBy)
-        public byte[] DownloadReport(decimal total, string filePath, int month, int year, string createdBy)
+        public byte[] DownloadRoomReport(List<ReportBookingResponse> list, string filePath, int month, int year)
         {
             try
             {
@@ -105,22 +104,34 @@ namespace PORECT.Helper
                 {
                     IWorkbook workbook = new XSSFWorkbook(fs);
 
-                    ISheet worksheet = workbook.GetSheet("Room Bookng");
+                    ISheet worksheet = workbook.GetSheet("Room Booking");
 
                     if (worksheet != null)
                     {
-                        ICell cell = worksheet.GetRow(1).GetCell(8); //D:10
+                        ICell cell = worksheet.GetRow(1).GetCell(1); //B:2
                         var cellValue = cell.StringCellValue;
-                        cell.SetCellValue(cellValue.Replace("[FormDate]", DateTime.Now.ToString("dd MMM yyyy")));//replace placeholder
-                        ICell cell1 = worksheet.GetRow(9).GetCell(3); //D:10
-                        cell1.SetCellValue(createdBy);
-                        ICell cell2 = worksheet.GetRow(10).GetCell(3); //D:11
-                        cell2.SetCellValue(string.Format("Rp. {0}", total.ToString("N2")));
-                        ICell cell3 = worksheet.GetRow(8).GetCell(9); //J:9
-                        cell3.SetCellValue(string.Format("{0} {1}", 
-                            month.ToMonthEnum().ToString().ToIDNMonth(),
-                            year.ToString()
-                        ));
+                        cell.SetCellValue(cellValue.Replace(
+                            month > -1 ? "[Month description]" : "[Month description] ", 
+                            month > -1 ? month.ToMonthEnum().ToString() : string.Empty).Replace(
+                            "[year]", year.ToString()));//replace placeholder
+
+                        int row = worksheet.PhysicalNumberOfRows;
+                        for (int i = 0; i < list.Count; i++)
+                        {
+                            worksheet.CreateRow(row);
+                            var rows = worksheet.GetRow(row);
+                            ICell cell1 = rows.CreateCell(1); //B:5
+                            cell1.SetCellValue(i + 1);
+                            ICell cell2 = rows.CreateCell(2); //C:5
+                            cell2.SetCellValue(list[i].RoomName);
+                            ICell cell3 = rows.CreateCell(3); //D:5
+                            cell3.SetCellValue(list[i].BookedQty);
+                            ICell cell4 = rows.CreateCell(4); //E:5
+                            cell4.SetCellValue(list[i].TotalDuration);
+                            ICell cell5 = rows.CreateCell(5); //F:5
+                            cell5.SetCellValue(string.Format("Rp. {0}", list[i].TotalPrice.ToString("N2")));
+                            row++;
+                        }
                     }
 
                     using (var stream = new MemoryStream())
@@ -136,5 +147,6 @@ namespace PORECT.Helper
             }
         }
         #endregion Specific Module
+
     }
 }

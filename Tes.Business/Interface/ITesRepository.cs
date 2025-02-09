@@ -33,6 +33,7 @@ namespace Tes.Business
     {
         #region View
         public List<MsRoomResponse> GetListRoom(SearchRoomRequest dto);
+        public List<BookingResponse> GetListBooking(SearchRoomRequest dto);
         #endregion View
 
         #region Transaction
@@ -47,6 +48,8 @@ namespace Tes.Business
         /// <param name="data">File</param>
         /// <returns>Model class</returns>
         public TransactionResponse UploadRoomFile(UploadViewModel data);
+        public TransactionResponse UploadBookingFile(UploadViewModel data);
+        public byte[] DownloadReportBooking(ListChoiceWithId dto);
         #endregion Upload/Download
 
     }

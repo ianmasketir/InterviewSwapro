@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using PORECT.Helper;
 using Tes.Data;
 using Tes.Domain;
@@ -107,6 +108,20 @@ namespace Tes.Business
             try
             {
                 var result = _access.GetListRoomAsync(dto).Result;
+                //untuk case sederhana ini, abstraksi hanya ini karena semua operasi ada di repository
+
+                return result;
+            }
+            catch
+            {
+                throw;
+            }
+        }
+        public List<BookingResponse> GetListBooking(SearchRoomRequest dto)
+        {
+            try
+            {
+                var result = _access.GetListBookingAsync(dto).Result;
                 //untuk case sederhana ini, abstraksi hanya ini karena semua operasi ada di repository
 
                 return result;
@@ -420,6 +435,38 @@ namespace Tes.Business
 
                     return response;
                 }
+            }
+            catch
+            {
+                throw;
+            }
+        }
+
+        public byte[] DownloadReportBooking(ListChoiceWithId data)
+        {
+            try
+            {
+                int month = !string.IsNullOrEmpty(data.Text) ? Convert.ToInt32(data.Text) : -1;
+                int year = data.Value;
+                string filePath = AppConfig.Config.MsRoomTemplate.Download;
+                if (!System.IO.File.Exists(filePath))
+                    //return NotFound("Template not found");
+                    throw new Exception("Template not found");
+
+                var list = _access.GetReportBookingAsync(data).Result;
+                if (list.Count < 1)
+                {
+                    //return NotFound("Data not found");
+                    throw new Exception("Data not found");
+                    //return new TransactionResponse
+                    //{
+                    //    IsSuccess = false,
+                    //    Message = "Data not found"
+                    //});
+                }
+
+                byte[] result = excel.DownloadRoomReport(list, filePath, month, year);
+                return result;
             }
             catch
             {

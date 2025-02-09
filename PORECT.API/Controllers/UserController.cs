@@ -24,7 +24,6 @@ namespace PORECT.API.Controllers
         //}
 
         #region View
-        // GET: api/<UserController>
         [HttpGet]
         [Route("List")]
         public IActionResult GetList([FromQuery] SearchUserRequest data)
